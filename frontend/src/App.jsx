@@ -1,16 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import NavBar from "./components/Chats/NavBar";
+import SideBar from "./components/Chats/SideBar";
+import ChatWindow from "./components/Chats/ChatWindow";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
+  const [startChat, setStartChat] = useState(false)
   return (
-    <>
-      <h1 className='text-amber-800 font-bold'>Welcome to QuantumLink</h1>
-    </>
-  )
-}
+    <div className="h-screen flex flex-col">
+      {/* Top Navbar */}
+      <NavBar />
 
-export default App
+      {/* Main Section: Sidebar + Chat */}
+      <div className="flex flex-1">
+        <SideBar startChat={startChat}/>
+        <ChatWindow startChat={startChat}/>
+      </div>
+    </div>
+  );
+}
