@@ -1,16 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
+import { UserContext } from "../../store/start-end-context";
 
-export default function ChatWindow({startChat}) {
-  const [messages, setMessages] = useState([
-    // {
-    //   sender: "Alice",
-    //   text: "Hey! How are you?",
-    //   time: curTime,
-    //   img: "Alice-pp.jpg",
-    // },
-  ]);
+export default function ChatWindow() {
+  const { startChat } = useContext(UserContext);
+  const { sender, receiver } = startChat;
+
+  const [messages, setMessages] = useState([]);
+
 
   // Function to send a new message
   const handleSendMessage = (text) => {
@@ -19,9 +17,12 @@ export default function ChatWindow({startChat}) {
     const newMessage = {
       sender: "me",
       text,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }), //time that Alice sent the message
       status: "sent",
-      img: startChat ? "Alice-pp.jpg" : "Bob-pp.jpg",
+      img: sender.img,
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -32,8 +33,9 @@ export default function ChatWindow({startChat}) {
       {/* Chat header */}
       <div className="h-12 bg-gray-200 flex items-center px-4 border-b">
         <span className="font-semibold flex gap-2 text-xl">
-          <img src={startChat ? "Bob-pp.jpg" : "Alice-pp.jpg"} alt="" className="size-7 rounded-full"/>
-          {startChat ? "Bob" : "Alice"}</span>
+          <img src={receiver.img} alt="" className="size-7 rounded-full" />
+          {receiver.name}
+        </span>
       </div>
 
       {/* Messages */}
@@ -44,7 +46,7 @@ export default function ChatWindow({startChat}) {
       </div>
 
       {/* Input */}
-      <MessageInput onSend={handleSendMessage}/>
+      <MessageInput onSend={handleSendMessage} />
     </div>
   );
 }

@@ -1,7 +1,11 @@
+import { useContext } from "react";
+import { UserContext } from "../../store/start-end-context";
 import { Check, CheckCheck } from "lucide-react";
 
 export default function ChatMessage({ msg }) {
-  const isMe = msg.sender === "me";
+  const { startChat} = useContext(UserContext);
+  const { start } = startChat;
+  const isMe = start && msg.sender === "me";
 
   return (
     <div className={`flex items-end ${isMe ? "justify-end" : "justify-start"}`}>

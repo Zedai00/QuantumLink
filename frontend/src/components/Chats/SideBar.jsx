@@ -1,6 +1,11 @@
-export default function SideBar({startChat}) {
+import { useContext } from "react";
+import { UserContext } from "../../store/start-end-context";
+export default function SideBar() {
+
+  const { startChat } = useContext(UserContext);
+  const { receiver} = startChat;
   const chats = [
-    { name: startChat ? "Bob" : "Alice", img: startChat ? "/Bob-pp.jpg" : "/Alice-pp.jpg" },
+    { name: receiver.name, img: receiver.img },
     // { name: "Bob", img: "/Bob-pp.jpg" },
 
   ];
@@ -26,7 +31,7 @@ export default function SideBar({startChat}) {
             {/* Chat details */}
             <div className="flex-1">
               <p className="font-semibold">{chat.name}</p>
-              <p className="text-sm text-gray-500 truncate">Hey! How are you?</p>
+              {/* <p className="text-sm text-gray-500 truncate">Hey! How are you?</p> */}
             </div>
           </li>
         ))}
