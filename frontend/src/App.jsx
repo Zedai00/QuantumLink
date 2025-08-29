@@ -13,7 +13,7 @@ export default function App() {
   const [complete, setComplete] = useState(false)
   const [data, setData] = useState([{
     id: 0,
-    input: "Hello, World".split(""),
+    input: ["Hello, World"],
     output: null
   }])
 

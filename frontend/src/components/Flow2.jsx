@@ -1,8 +1,8 @@
-import { animate, createScope, svg } from "animejs";
+import { createScope, createTimeline, svg } from "animejs";
 import { useContext, useEffect, useRef } from "react";
 import { Context } from "./Context";
 
-export default function Flow({ input, convertor, output }) {
+export default function Flow2({ input, convertor, output }) {
 
   const root = useRef(null)
   const scope = useRef(null)
@@ -17,13 +17,16 @@ export default function Flow({ input, convertor, output }) {
       container.className = "letter-container w-16 h-16  flex justify-center items-center text-xl font-bold text-white rounded-md"
       root.current.prepend(container)
 
+      const { translateX, translateY, rotate } = svg.createMotionPath('path');
+      const tl = createTimeline({ defaults: { duration: 3000 } })
+
       input.forEach((letter, i) => {
         const el = document.createElement("div")
         el.textContent = letter
-        el.className = `letter-box opacity-0 absolute z-40  w-16 h-16  flex justify-center items-center text-white text-2xl font-bold`
+        el.className = `letter-box opacity-0 absolute z-40  w-16 h-16  flex justify-center items-center text-white text-xl font-bold`
         container.appendChild(el)
-        const { translateX, translateY, rotate } = svg.createMotionPath('path');
-        animate(el, {
+
+        tl.add(el, {
           keyframes: {
             "10%": { opacity: 1 }
           },
@@ -31,37 +34,63 @@ export default function Flow({ input, convertor, output }) {
           translateY: translateY,
           rotate: rotate,
           opacity: 1,
-          duration: 3000,
+          // duration: 3000,
           loop: false,
-          delay: (input.length - i - 1) * 500,
+          // delay: (input.length - i - 1) * 500,
+          onComplete: () => el.remove()
+        }, "+=200")
+
+        output[i].forEach((elm, j) => {
+          const el = document.createElement("div");
+          el.textContent = elm
+          el.className = "absolute left-160 top-42 z-40 w-16 h-16 bg-blue-500 flex justify-center items-center text-xl font-bold text-white rounded-md";
+
+          root.current.appendChild(el);
+
+          tl.add(el, {
+            keyframes: [
+              { translateX: 332, translateY: 0, duration: 800 },
+              { translateX: 332, translateY: 330, duration: 800 },
+              { translateX: 1000, translateY: 330, duration: 800 }
+            ],
+            // delay: 3000 + (500 * j),
+            duration: 500,
+            loop: false,
+            onComplete: () => {
+              el.remove()
+              if (i === input.length - 1 && j === output[i].length - 1 && !hasCompleted.current) {
+                hasCompleted.current = true;
+                onComplete(input, output);
+              }
+            }
+          }, `${j > 0 ? "-=2000" : "+=0"}`);
         })
       })
 
-      output.forEach((elm, i) => {
-        const el = document.createElement("div");
-        el.textContent = elm
-        el.className = "absolute left-160 top-42 z-40 w-16 h-16 bg-blue-500 flex justify-center items-center text-xl font-bold text-white rounded-md";
 
-        root.current.appendChild(el);
+      // output.forEach((box, i) => {
+      //   box.forEach((elm, j) => {
+      //     const el = document.createElement("div");
+      //     el.textContent = elm
+      //     el.className = "absolute left-160 top-42 z-40 w-16 h-16 bg-blue-500 flex justify-center items-center text-xl font-bold text-white rounded-md";
+      //
+      //     root.current.appendChild(el);
+      //
+      //     animate(el, {
+      //       keyframes: [
+      //         { translateX: 332, translateY: 0, duration: 800 },
+      //         { translateX: 332, translateY: 330, duration: 800 },
+      //         { translateX: 1000, translateY: 330, duration: 800 }
+      //       ],
+      //       delay: 3000 + (500 * j),
+      //       loop: false,
+      //       onComplete: () => {
+      //         el.remove()
+      //       }
+      //     });
+      //   })
+      // })
 
-        animate(el, {
-          keyframes: [
-            { translateX: 332, translateY: 0, duration: 800 },
-            { translateX: 332, translateY: 330, duration: 800 },
-            { translateX: 1000, translateY: 330, duration: 800 }
-          ],
-          delay: 3000 + (500 * i),
-          loop: false,
-          onComplete: () => {
-            if (i === output.length - 1 && !hasCompleted.current) {
-
-              hasCompleted.current = true
-              onComplete(input, output)
-            }
-            el.remove()
-          }
-        });
-      })
     })
     return () => {
       scope.current.revert()
