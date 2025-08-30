@@ -1,0 +1,31 @@
+.App {
+  text-align: center;
+  background: #0b1220;
+  color: white;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+header {
+  background: #111827;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid cyan;
+}
+
+header h1 {
+  font-size: 20px;
+  margin: 0;
+  color: #00f6ff;
+}
+
+header select {
+  padding: 6px 10px;
+  font-size: 16px;
+  background: #1e293b;
+  color: white;
+  border: 1px solid cyan;
+  border-radius: 6px;
+}

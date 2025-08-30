@@ -1,0 +1,79 @@
+body {
+  background: #0b1220;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Input box */
+.input-area {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+input,
+button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  background: #0ff;
+  color: #000;
+  cursor: pointer;
+}
+
+/* Encoder Box */
+.encoder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 85px;
+  background: #1f2b3a;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  font-size: 20px;
+  color: #0ff;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Flying Letter */
+.letter-fly {
+  position: absolute;
+  font-size: 25px;
+  font-family: monospace;
+  color: #ff0;
+  transition: all 2s ease;
+  z-index: 0;
+}
+
+/* Binary Output */
+.output-box {
+  position: absolute;
+  width: 180px;
+  height: 40px;
+  background: #0f1a2a;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  color: #0ff;
+  font-size: 18px;
+  opacity: 1;
+  transition: all 2s linear;
+}

@@ -1,0 +1,83 @@
+body {
+  margin: 0;
+  background: #0b1220;
+  font-family: Arial, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+#binaryInput {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  font-size: 16px;
+  font-family: monospace;
+  z-index: 5;
+  border: none;
+  border-radius: 6px;
+  background: #1e293b;
+  color: white;
+}
+
+#splitter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 130px;
+  border: 3px solid cyan;
+  border-radius: 10px;
+  text-align: center;
+  line-height: 130px;
+  font-size: 20px;
+  box-shadow: 0 0 25px #00f6ff;
+  background: #0f172a;
+  z-index: 10;
+}
+
+/* Glow pulse effect */
+.glow {
+  animation: pulseGlow 0.6s ease;
+}
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 25px #00f6ff;
+  }
+  50% {
+    box-shadow: 0 0 50px 15px #00f6ff;
+  }
+  100% {
+    box-shadow: 0 0 25px #00f6ff;
+  }
+}
+
+.flying {
+  position: absolute;
+  font-size: 22px;
+  font-family: monospace;
+  white-space: nowrap;
+  z-index: -5;
+  transition: top 0.7s ease, opacity 1s ease, left 0.5s ease;
+}
+
+/* Flash effect */
+.flash {
+  animation: flashPair 0.5s ease;
+}
+@keyframes flashPair {
+  0% {
+    text-shadow: 0 0 5px cyan, 0 0 10px cyan;
+    color: cyan;
+  }
+  50% {
+    text-shadow: 0 0 15px cyan, 0 0 25px cyan;
+    color: #00ffff;
+  }
+  100% {
+    text-shadow: none;
+    color: white;
+  }
+}

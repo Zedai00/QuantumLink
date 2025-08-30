@@ -1,0 +1,48 @@
+body {
+  background: #0b1220;
+  color: #eee;
+  font-family: Inter, Arial;
+  text-align: center;
+}
+
+#wrap {
+  display: inline-block;
+  position: relative;
+  margin-top: 14px;
+}
+
+canvas {
+  background: #0f1724;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.controls {
+  margin: 10px 0 6px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 6px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  background: #15314a;
+  color: #eaf6ff;
+  font-weight: 600;
+}
+
+#popup {
+  color: #fff;
+  font-weight: 700;
+  min-width: 70px;
+  min-height: 24px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 6px 12px;
+  border-radius: 6px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  text-align: center;
+  display: inline-block;
+}
