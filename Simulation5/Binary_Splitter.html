@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Splitter Animation</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    #binaryInput {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 8px;
+      font-size: 16px;
+      font-family: monospace;
+      z-index: 5;
+    }
+
+    #splitter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 130px;
+      border: 3px solid cyan;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 130px;
+      font-size: 20px;
+      box-shadow: 0 0 25px #00f6ff;
+      background: #0f172a;
+      z-index: 10;
+    }
+
+    /* Glow pulse effect */
+    .glow {
+      animation: pulseGlow 0.6s ease;
+    }
+    @keyframes pulseGlow {
+      0%   { box-shadow: 0 0 25px #00f6ff; }
+      50%  { box-shadow: 0 0 50px 15px #00f6ff; }
+      100% { box-shadow: 0 0 25px #00f6ff; }
+    }
+
+    .flying {
+      position: absolute;
+      font-size: 22px;
+      font-family: monospace;
+      white-space: nowrap;
+      z-index: -5;
+      transition: top 0.7s ease, opacity 1s ease, left 0.5s ease;
+    }
+
+    /* Flash when popping out */
+    .flash {
+      animation: flashPair 0.5s ease;
+    }
+    @keyframes flashPair {
+      0%   { text-shadow: 0 0 5px cyan, 0 0 10px cyan; color: cyan; }
+      50%  { text-shadow: 0 0 15px cyan, 0 0 25px cyan; color: #00ffff; }
+      100% { text-shadow: none; color: white; }
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="binaryInput" placeholder="Enter binary (e.g. 101101)" />
+  <div id="splitter">Binary Splitter</div>
+
+  <script>
+    const input = document.getElementById("binaryInput");
+    const splitter = document.getElementById("splitter");
+
+    function splitIntoPairs(binary) {
+      return binary.match(/.{1,2}/g) || [];
+    }
+
+    function animateBinary(binary) {
+      const flyIn = document.createElement("div");
+      flyIn.className = "flying";
+      flyIn.textContent = binary;
+      flyIn.style.left = "20px";
+      flyIn.style.top = "50%";
+      document.body.appendChild(flyIn);
+
+      let pos = 20;
+      const end = window.innerWidth + 200;
+      const rect = splitter.getBoundingClientRect();
+      const mid = rect.left + rect.width / 2;
+
+      const interval = setInterval(() => {
+        pos += 2;
+        flyIn.style.left = pos + "px";
+
+        if (pos >= mid - 30) {
+          clearInterval(interval);
+          flyIn.remove();
+
+          // Split into pairs
+          const pairs = splitIntoPairs(binary);
+          animatePairs(pairs, rect);
+        }
+
+        if (pos > end) {
+          clearInterval(interval);
+          flyIn.remove();
+        }
+      }, 16);
+    }
+
+    function animatePairs(pairs, rect) {
+      const created = [];
+      let index = 0;
+
+      function nextPair() {
+        if (index < pairs.length) {
+          const pair = document.createElement("div");
+          pair.className = "flying flash";
+          pair.textContent = pairs[index];
+          // Start at splitter center
+          pair.style.left = rect.left + rect.width / 2 + "px";
+          pair.style.top = "50%";
+          document.body.appendChild(pair);
+          created.push(pair);
+
+          // Glow on splitter
+          splitter.classList.add("glow");
+          setTimeout(() => splitter.classList.remove("glow"), 600);
+
+          // Animate pulling upward (higher + closer gap)
+          const offset = 120 + index * 35;
+          setTimeout(() => {
+            pair.style.top = `calc(50% - ${offset}px)`;
+          }, 100);
+
+          // remove flash
+          setTimeout(() => pair.classList.remove("flash"), 500);
+
+          index++;
+          setTimeout(nextPair, 1000); // wait before pulling next
+        } else {
+          // after all pairs are above splitter -> move right instantly one by one
+          setTimeout(() => movePairsRight(created), 1200);
+        }
+      }
+
+      nextPair();
+    }
+
+    function movePairsRight(elements) {
+      elements.forEach((el, i) => {
+        setTimeout(() => {
+          let pos = parseInt(el.style.left);
+          const end = window.innerWidth + 200;
+
+          const interval = setInterval(() => {
+            pos += 3;
+            el.style.left = pos + "px";
+
+            if (pos > end) {
+              clearInterval(interval);
+              el.style.opacity = "0";
+              setTimeout(() => el.remove(), 500);
+            }
+          }, 4);
+        }, i * 120); // start each instantly one after another
+      });
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const binary = input.value.trim();
+        if (/^[01]+$/.test(binary)) {
+          animateBinary(binary);
+        } else {
+          alert("Enter a valid binary string (only 0s and 1s)");
+        }
+        input.value = "";
+      }
+    });
+  </script>
+</body>
+</html>

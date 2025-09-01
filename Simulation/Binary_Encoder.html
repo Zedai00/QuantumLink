@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Binary Encoder Animation - Big Flying Letter</title>
+<style>
+  body {
+    background: #0b1220;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Input box on far left, vertically centered with encoder */
+  .input-area {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 10px;
+  }
+
+  input, button {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: none;
+  }
+
+  button {
+    background: #0ff;
+    color: #000;
+    cursor: pointer;
+  }
+
+  .encoder {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 85px;
+    background: #1f2b3a;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    font-size: 20px;
+    color: #0ff;
+    overflow: hidden; /* Hide letters behind the box */
+    z-index: 1;
+  }
+
+  .letter-fly {
+    position: absolute;
+    font-size: 25px;
+    font-family: monospace;
+    color: #ff0;
+    transition: all 2s ease; /* slow flying */
+    z-index: 0; /* behind encoder */
+  }
+
+  .output-box {
+    position: absolute;
+    width: 180px;
+    height: 40px;
+    background: #0f1a2a;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    color: #0ff;
+    font-size: 18px;
+    opacity: 1;
+    transition: all 2s linear;
+  }
+</style>
+</head>
+<body>
+
+<div class="input-area">
+  <input type="text" id="userInput" placeholder="Type your message">
+  <button onclick="startAnimation()">Encode</button>
+</div>
+
+<div class="encoder" id="encoder">Binary Encoder</div>
+
+<script>
+function charToBinary(char) {
+  return char.charCodeAt(0).toString(2).padStart(8, '0');
+}
+
+function startAnimation() {
+  const input = document.getElementById('userInput').value;
+
+  let index = 0;
+
+  function nextLetter() {
+    if (index >= input.length) return;
+
+    const letter = input[index];
+    const binary = charToBinary(letter);
+
+    // Create flying letter
+    const letterEl = document.createElement('div');
+    letterEl.className = 'letter-fly';
+    letterEl.textContent = letter;
+    document.body.appendChild(letterEl);
+
+    const encoder = document.getElementById('encoder');
+    const encoderRect = encoder.getBoundingClientRect();
+    const inputRect = document.getElementById('userInput').getBoundingClientRect();
+
+    // Start at input box
+    letterEl.style.left = inputRect.left + 'px';
+    letterEl.style.top = inputRect.top + 'px';
+    letterEl.style.fontSize = '20px'; // initial size
+
+    // Animate to encoder (increase font size)
+    requestAnimationFrame(() => {
+      letterEl.style.left = encoderRect.left + (encoderRect.width / 2 - 100) + 'px';
+      letterEl.style.top = encoderRect.top + 27+ 'px';
+      letterEl.style.fontSize = '30px'; // increased size during flight
+    });
+
+    // After flying, hide letter behind encoder and create moving binary
+    setTimeout(() => {
+      letterEl.remove(); // disappear behind encoder
+
+      const outputBox = document.createElement('div');
+      outputBox.className = 'output-box';
+      outputBox.textContent = binary;
+      document.body.appendChild(outputBox);
+
+      // Position at encoder right side
+      const encoderRightX = encoderRect.left + encoderRect.width +10;
+      const encoderCenterY = encoderRect.top + (encoderRect.height / 2) -20;
+      outputBox.style.left = encoderRightX + 'px';
+      outputBox.style.top = encoderCenterY + 'px';
+
+      // Animate moving right until off-screen
+      const screenWidth = window.innerWidth;
+      requestAnimationFrame(() => {
+        outputBox.style.left = screenWidth + 'px';
+      });
+
+      // Remove after moving
+      setTimeout(() => {
+        outputBox.remove();
+        index++;
+        nextLetter(); // Next letter
+      }, 2000);
+
+    }, 2000); // flying duration
+  }
+
+  nextLetter();
+}
+</script>
+
+</body>
+</html>
+
+
+
+
+
+

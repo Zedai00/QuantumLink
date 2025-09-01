@@ -1,0 +1,143 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Joiner Animation</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    #binaryInput {
+      position: absolute;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 16px;
+      font-size: 19px;
+      font-family: monospace;
+      z-index: 5;
+    }
+
+    #joiner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px;
+      height: 118px;
+      border: 3px solid cyan;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 100px;
+      font-size: 40px;
+      box-shadow: 0 0 25px #00f6ff;
+      background: #0f172a;
+      z-index: 10;
+    }
+
+    .pair {
+      position: absolute;
+      font-size: 22px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .block {
+      position: absolute;
+      font-size: 26px;
+      font-family: monospace;
+      white-space: nowrap;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="binaryInput" placeholder="Enter 2-bit pair (e.g. 10)" maxlength="2" />
+  <div id="joiner">Binary Joiner</div>
+
+  <script>
+    const input = document.getElementById("binaryInput");
+    const joiner = document.getElementById("joiner");
+    const buffer = [];
+    let busy = false;
+
+    function dropPair(pairText) {
+      const rect = joiner.getBoundingClientRect();
+
+      // Create pair starting on the far left
+      const pair = document.createElement("div");
+      pair.className = "pair";
+      pair.textContent = pairText;
+      pair.style.left = "0px";
+      pair.style.top = rect.top + rect.height/2 - 15 + "px";
+      document.body.appendChild(pair);
+
+      let pos = 0;
+      const target = rect.left + rect.width/2 - 15;
+
+      const interval = setInterval(() => {
+        pos += 2; // speed
+        pair.style.left = pos + "px";
+
+        if (pos >= target) {
+          clearInterval(interval);
+          pair.remove();
+          buffer.push(pairText);
+
+          if (buffer.length === 4) {
+            setTimeout(() => {
+              const blockValue = buffer.join("");
+              buffer.length = 0;
+              createBlock(blockValue, rect);
+            }, 500);
+          }
+        }
+      }, 16);
+    }
+
+    function createBlock(bits, rect) {
+      busy = true;
+      const block = document.createElement("div");
+      block.className = "block";
+      block.textContent = bits;
+      block.style.left = rect.left + rect.width + "px";
+      block.style.top = rect.top + rect.height / 2 - 15 + "px";
+      document.body.appendChild(block);
+
+      let pos = rect.left + rect.width;
+      const end = window.innerWidth + 200;
+
+      const interval = setInterval(() => {
+        pos += 3;
+        block.style.left = pos + "px";
+
+        if (pos > end) {
+          clearInterval(interval);
+          block.remove();
+          busy = false;
+        }
+      }, 16);
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        if (busy) return; // pause until block is done
+        const pair = input.value.trim();
+        if (/^[01]{2}$/.test(pair)) {
+          dropPair(pair);
+        } else {
+          alert("Enter exactly 2 bits (e.g. 10, 01, 11, 00)");
+        }
+        input.value = "";
+      }
+    });
+  </script>
+</body>
+</html>
+
+

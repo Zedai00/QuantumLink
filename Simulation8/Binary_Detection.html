@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary Detection</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      font-family: Arial, sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    #gateInput {
+      position: absolute;
+      left: 1px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 8px;
+      font-size: 16px;
+      font-family: monospace;
+      z-index: 5;
+    }
+
+    #gateBox {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 220px;
+      height: 100px;
+      border: 3px solid cyan;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 100px;
+      font-size: 23px;
+      box-shadow: 0 0 25px #00f6ff;
+      background: #0f172a;
+      z-index: 10;
+      font-weight: bold;
+      transition: all 0.4s ease;
+    }
+
+    /* Single pulse effect */
+    #gateBox.pulse {
+      animation: pulseOnce 0.6s ease-out;
+    }
+
+    @keyframes pulseOnce {
+      0% { box-shadow: 0 0 20px #00f6ff; }
+      50% { box-shadow: 0 0 60px #00f6ff, 0 0 100px #00f6ff; }
+      100% { box-shadow: 0 0 25px #00f6ff; }
+    }
+
+    #ruleBox {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 1px solid #00f6ff;
+      padding: 8px;
+      font-family: monospace;
+      background: #1a2338;
+      font-size:28px;
+    }
+
+    #rightBox {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 1px solid #00f6ff;
+      padding: 10px;
+      font-family: monospace;
+      background: #1a2338;
+      font-size: 25px;
+    }
+
+    #rightBox div {
+      margin: 6px 0;
+      transition: all 0.4s ease;
+    }
+
+    #rightBox .highlight {
+      color: #00ffea;
+      font-size: 26px;
+      text-shadow: 0 0 15px #00f6ff, 0 0 30px #00f6ff;
+      transform: scale(1.3);
+    }
+
+    .gate {
+      position: absolute;
+      font-size: 22px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .output {
+      position: absolute;
+      font-size: 22px;
+      font-family: monospace;
+      white-space: nowrap;
+      color: #00f6ff;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="gateInput" placeholder="Enter Gate (I,X,Z,XZ)" maxlength="2" />
+  <div id="gateBox">Binary Detection</div>
+  <div id="ruleBox">
+    I → 00<br>
+    X → 01<br>
+    Z → 10<br>
+    XZ → 11
+  </div>
+  <div id="rightBox">
+    <div id="bin-00">00</div>
+    <div id="bin-01">01</div>
+    <div id="bin-10">10</div>
+    <div id="bin-11">11</div>
+  </div>
+
+  <!-- Beep sound -->
+  <!-- <audio id="beepSound">
+    <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg">
+  </audio> -->
+
+  <script>
+    const input = document.getElementById("gateInput");
+    const gateBox = document.getElementById("gateBox");
+    const rightBox = document.getElementById("rightBox");
+    const beep = document.getElementById("beepSound");
+
+    // Reverse mapping
+    const rules = {
+      "I": "00",
+      "X": "01",
+      "Z": "10",
+      "XZ": "11"
+    };
+
+    function dropGate(gateText) {
+      const rectGate = gateBox.getBoundingClientRect();
+      const rectRight = rightBox.getBoundingClientRect();
+
+      // Create moving gate
+      const gate = document.createElement("div");
+      gate.className = "gate";
+      gate.textContent = gateText;
+      gate.style.left = "0px";
+      gate.style.top = rectGate.top + rectGate.height / 2 - 15 + "px";
+      document.body.appendChild(gate);
+
+      let pos = 0;
+      const target = rectGate.left + rectGate.width / 2 - 15;
+      let transformed = false;
+
+      const interval = setInterval(() => {
+        pos += 2;
+        gate.style.left = pos + "px";
+
+        // At gate center -> pulse + produce binary
+        if (!transformed && pos >= target) {
+          transformed = true;
+          gateBox.classList.add("pulse");
+          setTimeout(() => gateBox.classList.remove("pulse"), 600);
+
+          const outputValue = rules[gateText];
+          const out = document.createElement("div");
+          out.className = "output";
+          out.textContent = outputValue;
+          out.style.left = rectGate.right + "px";
+          out.style.top = rectGate.top + rectGate.height / 2 - 15 + "px";
+          document.body.appendChild(out);
+
+          // Move output toward right box
+          let pos2 = rectGate.right;
+          const target2 = rectRight.left - 30;
+
+          const interval2 = setInterval(() => {
+            pos2 += 2;
+            out.style.left = pos2 + "px";
+
+            if (pos2 >= target2) {
+              clearInterval(interval2);
+              out.remove();
+
+              // Highlight binary in right box
+              let binEl = document.getElementById("bin-" + outputValue);
+              if (binEl) {
+                binEl.classList.add("highlight");
+                beep.currentTime = 0;
+                beep.play();
+                setTimeout(() => binEl.classList.remove("highlight"), 600);
+              }
+            }
+          }, 16);
+        }
+
+        // Remove gate once it hits center
+        if (pos >= target) {
+          gate.remove();
+        }
+
+      }, 16);
+    }
+
+    // Handle input
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const gate = input.value.trim().toUpperCase();
+        if (rules[gate]) {
+          dropGate(gate);
+        } else {
+          alert("Enter valid Gate: I, X, Z, XZ");
+        }
+        input.value = "";
+      }
+    });
+  </script>
+</body>
+</html>

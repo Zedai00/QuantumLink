@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Entangled Bloch Spheres — Fixed Needle Animation</title>
+<style>
+  body { background:#0b1220; color:#eee; font-family:Inter, Arial; text-align:center; }
+  #wrap { display:inline-block; margin-top:14px; }
+  canvas { background:#0f1724; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+  .controls { margin:10px 0 6px; }
+  button {
+    padding:8px 12px; margin:6px; border-radius:8px; border:0; cursor:pointer;
+    background:#15314a; color:#eaf6ff; font-weight:600;
+  }
+  #popup { color:#fff; font-weight:700; margin-top:6px; min-height:20px; }
+</style>
+</head>
+<body>
+  <h2>Entangled Bloch Spheres — Bit & Phase Needles (Fixed)</h2>
+  <div id="wrap">
+    <div class="controls">
+      <button id="btnI">I</button>
+      <button id="btnX">X</button>
+      <button id="btnZ">Z</button>
+      <button id="btnXZ">XZ</button>
+    </div>
+    <canvas id="c" width="880" height="420"></canvas>
+    <div id="popup"></div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const R = 110;
+  const leftCx  = W * 0.25;
+  const rightCx = W * 0.75;
+  const cy = H/2;
+
+  // Needle directions (+1 up/right, -1 down/left)
+  let bitTarget   = 1;
+  let phaseTarget = 1;
+
+  // Needle lengths (0..1) used for animation. Default 1 (full length).
+  let bitLength   = 1;
+  let phaseLength = 1;
+
+  // animation state
+  let animating = false;
+  let sphereColor = "#ffffff"; // outline color while idle
+  let wavePhase = 0; // moving electric wave phase
+
+  // gate colors
+  const gateColors = { I:"#9aa0a6", X:"#ff9800", Z:"#00e5ff", XZ:"#ba68c8" };
+
+  // Drawing a Bloch sphere with two needles (bit vertical, phase horizontal)
+  function drawSphere(cx, cy, label) {
+    // sphere outline (colored)
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = sphereColor;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+
+    // label
+    ctx.fillStyle = "#eef6ff";
+    ctx.font = "14px Inter, Arial";
+    ctx.fillText(label, cx - 18, cy - R - 12);
+
+    // axes (subtle)
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(200,80,80,0.14)"; ctx.beginPath();
+    ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
+    ctx.strokeStyle = "rgba(80,200,140,0.10)"; ctx.beginPath();
+    ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+
+    // Bit needle (vertical - white)
+    const bx = cx;
+    const by = cy - bitTarget * R * 0.78 * bitLength;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI*2); ctx.fillStyle = "#ffffff"; ctx.fill();
+
+    // Phase needle (horizontal - cyan)
+    const px = cx + phaseTarget * R * 0.78 * phaseLength;
+    const py = cy;
+    ctx.strokeStyle = "#6ef0ff";
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2); ctx.fillStyle = "#6ef0ff"; ctx.fill();
+
+    // reset lineWidth
+    ctx.lineWidth = 1;
+  }
+
+  // Animated electric link (wavy line) — color constant for now
+  function drawLink() {
+    ctx.lineWidth = 3;
+    // create gradient matching sphereColor to look synced
+    const grad = ctx.createLinearGradient(leftCx + R, cy, rightCx - R, cy);
+    grad.addColorStop(0, sphereColor);
+    grad.addColorStop(0.5, "#6ef0ff");
+    grad.addColorStop(1, sphereColor);
+    ctx.strokeStyle = grad;
+
+    ctx.beginPath();
+    const steps = 60;
+    for(let i=0;i<=steps;i++){
+      const t = i/steps;
+      const x = leftCx + R + t * ((rightCx - R) - (leftCx + R));
+      const y = cy + Math.sin(t * 12 * Math.PI + wavePhase) * 12;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  }
+
+  function clear() {
+    ctx.clearRect(0,0,W,H);
+    // subtle background circle behind spheres
+    const g = ctx.createRadialGradient(W/2 - 120, H/2 - 80, 20, W/2, H/2, R*3.0);
+    g.addColorStop(0, "rgba(100,140,180,0.02)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  }
+
+  function drawAll() {
+    clear();
+    drawSphere(leftCx, cy, "Alice");
+    drawSphere(rightCx, cy, "Bob");
+    drawLink();
+  }
+
+  // animateFlip: flipBit / flipPhase booleans control which needles animate.
+  // color: sphere outline color to show during animation
+  function animateFlip(flipBit, flipPhase, color) {
+    if(animating) return;
+    animating = true;
+    sphereColor = color || "#ffffff";
+
+    // We'll run a two-phase animation: shrinking -> flip directions -> growing
+    let progress = 0;
+    const speedShrink = 0.06; // shrink speed
+    const speedGrow   = 0.06; // grow  speed
+    let shrinking = true;
+
+    function step() {
+      // Update wave so link moves during animation
+      wavePhase += 0.18;
+
+      if (shrinking) {
+        progress += speedShrink;
+        // only shrink needles that are supposed to flip; others remain full size
+        bitLength   = flipBit   ? Math.max(0, 1 - progress) : 1;
+        phaseLength = flipPhase ? Math.max(0, 1 - progress) : 1;
+
+        if (progress >= 1.0) {
+          // halfway: flip directions for those requested
+          if (flipBit)   bitTarget   *= -1;
+          if (flipPhase) phaseTarget *= -1;
+          // start growth phase
+          shrinking = false;
+          progress = 0;
+        }
+      } else {
+        progress += speedGrow;
+        bitLength   = flipBit   ? Math.min(1, progress) : 1;
+        phaseLength = flipPhase ? Math.min(1, progress) : 1;
+
+        if (progress >= 1.0) {
+          // done
+          animating = false;
+          // restore neutral color after a very short delay for visual clarity
+          setTimeout(()=> { sphereColor = "#ffffff"; }, 80);
+          drawAll();
+          return;
+        }
+      }
+
+      drawAll();
+      // continue animation
+      requestAnimationFrame(step);
+    }
+
+    // kick off animation loop
+    requestAnimationFrame(step);
+  }
+
+  // handle gate application
+  function applyGate(g) {
+    if (animating) return; // ignore while animating
+    const pop = document.getElementById('popup');
+
+    if (g === "I") {
+      // flash a neutral color briefly (no needle changes)
+      sphereColor = gateColors.I;
+      pop.textContent = "Output: I";
+      setTimeout(()=> { sphereColor = "#ffffff"; pop.textContent = ""; }, 600);
+      return;
+    }
+
+    if (g === "X") {
+      animateFlip(true, false, gateColors.X);
+      pop.textContent = "Output: X";
+    } else if (g === "Z") {
+      animateFlip(false, true, gateColors.Z);
+      pop.textContent = "Output: Z";
+    } else if (g === "XZ") {
+      animateFlip(true, true, gateColors.XZ);
+      pop.textContent = "Output: XZ";
+    }
+
+    // clear popup after animation-ish time
+    setTimeout(()=> { if(!animating) document.getElementById('popup').textContent=""; }, 900);
+  }
+
+  // background loop that moves electric wave when idle
+  function idleLoop() {
+    if (!animating) {
+      wavePhase += 0.045; // slow continuous flow
+      drawAll();
+    }
+    requestAnimationFrame(idleLoop);
+  }
+
+  // set up UI
+  document.getElementById('btnI').addEventListener('click', ()=> applyGate('I'));
+  document.getElementById('btnX').addEventListener('click', ()=> applyGate('X'));
+  document.getElementById('btnZ').addEventListener('click', ()=> applyGate('Z'));
+  document.getElementById('btnXZ').addEventListener('click', ()=> applyGate('XZ'));
+
+  // initial draw & run loop
+  ctx.font = "14px Inter, Arial";
+  drawAll();
+  idleLoop();
+
+})();
+</script>
+</body>
+</html>
+
+
+
