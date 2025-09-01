@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flow";
+import Flow from "../FlowNxN";
 import { Context } from "../Context";
 
 export default function LetterSplitter() {

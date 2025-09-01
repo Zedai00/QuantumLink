@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow2 from "../Flow2";
+import Flow from "../Flow1xN";
 import { Context } from "../Context";
 
 export default function BinarySplitter() {
@@ -16,6 +16,6 @@ export default function BinarySplitter() {
   })
 
   return (
-    <Flow2 input={input} convertor="LetterToBinary" output={output} />
+    <Flow input={input} convertor="BinarySplitter" output={output} />
   );
 }

@@ -7,20 +7,22 @@ import LetterSplitter from "./components/Convertors/LetterSplitter";
 import { Context } from "./components/Context";
 import LetterToBinary from "./components/Convertors/LetterToBinary";
 import BinarySplitter from "./components/Convertors/BinarySplitter";
+import BinaryToGate from "./components/Convertors/BinaryToGate";
 
 export default function App() {
   const [stage, setStage] = useState(0)
   const [complete, setComplete] = useState(false)
   const [data, setData] = useState([{
     id: 0,
-    input: ["Hello, World"],
+    input: ["He"],
     output: null
   }])
 
   const stages = [
     LetterSplitter,
     LetterToBinary,
-    BinarySplitter
+    BinarySplitter,
+    BinaryToGate
   ]
 
   const handleOnComplete = (input, output) => {
