@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flow1x1";
+import Flow from "../FlowArray";
 import { Context } from "../Context";
 
 export default function LetterToBinary() {
@@ -12,6 +12,6 @@ export default function LetterToBinary() {
   })
 
   return (
-    <Flow input={input} convertor="LetterToBinary" output={output.reverse()} />
+    <Flow input={input} convertor="LetterToBinary" output={output} />
   );
 }

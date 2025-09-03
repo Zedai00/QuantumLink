@@ -8,6 +8,7 @@ import { Context } from "./components/Context";
 import LetterToBinary from "./components/Convertors/LetterToBinary";
 import BinarySplitter from "./components/Convertors/BinarySplitter";
 import BinaryToGate from "./components/Convertors/BinaryToGate";
+import BlochSphere from "./components/Convertors/BlochSphere";
 
 export default function App() {
   const [stage, setStage] = useState(0)
@@ -56,11 +57,12 @@ export default function App() {
 
   const CurrentStage = stages[stage]
   return (
-    <div className="h-screen flex flex-col">
-      {complete && "Complete"}
-      {!complete && <Context.Provider value={{ stage, data, onComplete: handleOnComplete }}>
-        <CurrentStage />
-      </Context.Provider>}
+    <div className="h-screen flex justify-center items-center">
+      <BlochSphere />
+      {/* {complete && "Complete"} */}
+      {/* {!complete && <Context.Provider value={{ stage, data, onComplete: handleOnComplete }}> */}
+      {/*   <CurrentStage /> */}
+      {/* </Context.Provider>} */}
       {/* {/* Top Navbar */}
       {/* <NavBar /> */}
       {/**/}
