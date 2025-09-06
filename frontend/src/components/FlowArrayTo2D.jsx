@@ -14,10 +14,11 @@ export default function Flow({ input, convertor, output }) {
     scope.current = createScope({ root }).add(() => {
       const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
-      const tl = createTimeline({ defaults: { duration: 3000 } });
+      const tl = createTimeline({ defaults: { duration: 2000 } });
 
       // Animate input letters
       input.forEach((letter, i) => {
+        console.log(`input: ${input}`)
         const el = document.createElement("div");
         el.textContent = letter;
         el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
@@ -47,6 +48,7 @@ export default function Flow({ input, convertor, output }) {
 
         // Animate grouped output letters for each input letter
         output[i].forEach((elm, j) => {
+          console.log(`elm: ${elm}, output:${output}`)
           const outEl = document.createElement("div");
           outEl.textContent = elm;
           outEl.className = `absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
@@ -81,7 +83,7 @@ export default function Flow({ input, convertor, output }) {
                 }
               },
             },
-            `${j > 0 ? "-=2000" : "+=0"}`
+            "-=1000"
           );
         });
       });
@@ -95,7 +97,7 @@ export default function Flow({ input, convertor, output }) {
   }, [input, onComplete, output]);
 
   return (
-    <div ref={root} className="relative bg-[#030313] min-h-screen overflow-hidden">
+    <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
       {/* Motion Paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path

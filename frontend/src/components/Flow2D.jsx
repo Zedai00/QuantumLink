@@ -16,7 +16,7 @@ export default function Flow({ input, convertor, output }) {
         svg.createMotionPath("#ltc");
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } =
         svg.createMotionPath("#ctr");
-      const tl = createTimeline({ defaults: { duration: 3000 } });
+      const tl = createTimeline({ defaults: { duration: 2000 } });
 
       // ✅ We know input & output are always 2D arrays
       input.forEach((row, rowIndex) => {
@@ -99,8 +99,8 @@ export default function Flow({ input, convertor, output }) {
   }, [input, onComplete, output]);
 
   return (
-    <div ref={root} className="relative bg-[#030313] min-h-screen overflow-hidden">
-      {/* Motion Paths */}
+    <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
+      {/* Mosides will show whitetion Paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path id="ltc" d="M 0 229 l 543 0" fill="none" stroke="none" />
       </svg>

@@ -15,7 +15,7 @@ export default function Flow({ input, convertor, output }) {
     scope.current = createScope({ root }).add(() => {
       const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
-      const tl = createTimeline({ defaults: { duration: 3000 } });
+      const tl = createTimeline({ defaults: { duration: 2000 } });
 
       // Input letters animation
       input.forEach((letter) => {
@@ -91,7 +91,7 @@ export default function Flow({ input, convertor, output }) {
   }, [input, onComplete, output]);
 
   return (
-    <div ref={root} className="relative bg-[#030313] min-h-screen overflow-hidden">
+    <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
       {/* Motion paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path

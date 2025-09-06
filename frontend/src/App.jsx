@@ -9,13 +9,18 @@ import LetterToBinary from "./components/Convertors/LetterToBinary";
 import BinarySplitter from "./components/Convertors/BinarySplitter";
 import BinaryToGate from "./components/Convertors/BinaryToGate";
 import BlochSphere from "./components/Convertors/BlochSphere";
+import BlochPage from "./components/Convertors/BlochPage";
+import GateToBinary from "./components/Convertors/GateToBinary";
+import BinaryJoiner from "./components/Convertors/BinaryMerger";
+import BinaryToLetter from "./components/Convertors/BinaryToLetter";
+import LetterMerger from "./components/Convertors/LetterMerger";
 
 export default function App() {
   const [stage, setStage] = useState(0)
   const [complete, setComplete] = useState(false)
   const [data, setData] = useState([{
     id: 0,
-    input: ["He"],
+    input: ["6"],
     output: null
   }])
 
@@ -23,7 +28,12 @@ export default function App() {
     LetterSplitter,
     LetterToBinary,
     BinarySplitter,
-    BinaryToGate
+    BinaryToGate,
+    BlochPage,
+    GateToBinary,
+    BinaryJoiner,
+    BinaryToLetter,
+    LetterMerger
   ]
 
   const handleOnComplete = (input, output) => {
@@ -57,15 +67,14 @@ export default function App() {
 
   const CurrentStage = stages[stage]
   return (
-    <div className="h-screen flex justify-center items-center">
-      <BlochSphere />
-      {/* {complete && "Complete"} */}
-      {/* {!complete && <Context.Provider value={{ stage, data, onComplete: handleOnComplete }}> */}
-      {/*   <CurrentStage /> */}
-      {/* </Context.Provider>} */}
-      {/* {/* Top Navbar */}
+    <div className="h-screen w-screen flex justify-center items-center">
+      {complete && "Complete"}
+      {!complete && <Context.Provider value={{ stage, data, onComplete: handleOnComplete }}>
+        <CurrentStage />
+      </Context.Provider>}
+      {/* Top Navbar */}
       {/* <NavBar /> */}
-      {/**/}
+
       {/* {/* Main Section: Sidebar + Chat */}
       {/* <div className="flex flex-1"> */}
       {/*   <SideBar startChat={startChat} /> */}
