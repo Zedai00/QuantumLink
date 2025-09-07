@@ -141,35 +141,6 @@ export default function Flow({ input, convertor, output }) {
         {convertor}
       </div>
 
-      {/* Neon Glow & Particle Effects */}
-      <style>
-        {`
-          /* Smooth holographic shimmer for converter box */
-          @keyframes holo-shimmer {
-            0% { box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 40px rgba(255,0,255,0.2); }
-            50% { box-shadow: 0 0 35px rgba(0,255,255,0.7), 0 0 60px rgba(255,0,255,0.5); }
-            100% { box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 40px rgba(255,0,255,0.2); }
-          }
-          .animate-holo-shimmer {
-            animation: holo-shimmer 3s infinite ease-in-out;
-          }
-
-          /* Quantum particles pulse dynamically */
-          @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 8px rgba(0,255,255,0.3), 0 0 15px rgba(255,0,255,0.2); }
-            50% { box-shadow: 0 0 25px rgba(0,255,255,0.8), 0 0 40px rgba(255,0,255,0.5); }
-          }
-          .animate-pulse-glow {
-            animation: pulse-glow 1.5s infinite ease-in-out;
-          }
-
-          /* Particle glow trails for moving letters */
-          .neon-particle {
-            filter: drop-shadow(0 0 8px rgba(0,255,255,0.5)) drop-shadow(0 0 15px rgba(255,0,255,0.3));
-            transition: filter 0.2s ease-in-out;
-          }
-        `}
-      </style>
     </div>
   );
 }

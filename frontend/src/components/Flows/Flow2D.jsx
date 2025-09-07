@@ -126,7 +126,7 @@ export default function Flow({ input, convertor, output }) {
         rounded-xl shadow-[0_0_35px_rgba(0,255,255,0.9)]
         flex items-center justify-center text-cyan-300
         font-bold text-2xl border border-cyan-400/40 backdrop-blur-md
-        animate-holo-shimmer z-50"
+         z-50"
       >
         {convertor}
       </div>

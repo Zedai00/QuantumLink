@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
 import { createTimeline, createScope, svg, utils } from "animejs";
 import BlochSphere from "./BlochSphere/BlochSphere";
-import EntanglementToggle from "./BlochSphere/EntanglementToggle";
 import { Context } from "../Context/Context";
 import * as THREE from "three";
 import SineWave from "./BlochSphere/SineWave";
@@ -15,9 +14,7 @@ export default function BlochPage() {
   const output = data[stage] ? data[stage].output : input;
 
 
-  // Initialize selectedGate immediately to the first input letter
   const [selectedGate, setSelectedGate] = useState("RANDOM");
-  const [quantumMode, setQuantumMode] = useState(false);
   const [gateKey, setGateKey] = useState(0);
 
   const aliceDirRef = useRef(new THREE.Vector3(0, 0, 1));
@@ -100,6 +97,7 @@ export default function BlochPage() {
       document.querySelectorAll(".letter-container, .letter-box").forEach(el => el.remove());
     };
   }, [onComplete]);
+
   useEffect(() => {
     if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
   }, [speed]);
@@ -113,15 +111,11 @@ export default function BlochPage() {
 
       {/* Canvas appears instantly with initial gate */}
       <div className="absolute bg-transparent rounded-full top-45 left-66 flex justify-center items-center z-50">
-        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={false} aliceDirRef={aliceDirRef} quantumMode={quantumMode} />
+        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={false} aliceDirRef={aliceDirRef} />
         <SineWave width={300} height={120} amplitude={25} frequency={0.05} speed={3} hideStart={0} />
-        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={true} aliceDirRef={aliceDirRef} quantumMode={quantumMode} />
+        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={true} aliceDirRef={aliceDirRef} />
       </div>
 
-      {/* Entanglement toggle */}
-      <div className="absolute top-4 flex gap-6">
-        <EntanglementToggle quantumMode={quantumMode} setQuantumMode={setQuantumMode} />
-      </div>
     </div>
   );
 }
