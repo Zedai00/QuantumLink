@@ -1,13 +1,13 @@
-import { createTimeline, createScope, svg } from "animejs";
+import { createTimeline, createScope, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
 import { Context } from "../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
-
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(null);
-  const { onComplete } = useContext(Context);
+  const tlRef = useRef(null);
+  const { onComplete, speed } = useContext(Context); // use global speed
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -16,9 +16,9 @@ export default function Flow({ input, convertor, output }) {
       const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
+      tlRef.current = tl;
 
       // Input letters animation
-
       const el = document.createElement("div");
       el.textContent = input;
       el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
@@ -33,9 +33,7 @@ export default function Flow({ input, convertor, output }) {
       tl.add(
         el,
         {
-          keyframes: {
-            "10%": { opacity: 1 },
-          },
+          keyframes: { "10%": { opacity: 1 } },
           translateX: ltcX,
           translateY: ltcY,
           rotate: ltcRotate,
@@ -45,6 +43,7 @@ export default function Flow({ input, convertor, output }) {
         },
         "+=200"
       );
+
       // Output letters animation
       output.forEach((elm, i) => {
         const el = document.createElement("div");
@@ -61,9 +60,7 @@ export default function Flow({ input, convertor, output }) {
         tl.add(
           el,
           {
-            keyframes: {
-              "10%": { opacity: 1 },
-            },
+            keyframes: { "10%": { opacity: 1 } },
             translateX: ctrX,
             translateY: ctrY,
             rotate: ctrRotate,
@@ -87,34 +84,22 @@ export default function Flow({ input, convertor, output }) {
       const lc = document.querySelectorAll(".letter-container");
       lc.forEach((l) => l.remove());
     };
-  }, [input, onComplete, output]);
+  }, [onComplete]);
+
+  // Update timeline speed whenever global speed changes
+  useEffect(() => {
+    if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
+  }, [speed]);
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
       {/* Motion paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
-        <path
-          id="ltc"
-          d="M 0 229 l 543 0"
-          fill="none"
-          stroke="none"
-          strokeWidth="2"
-        />
+        <path id="ltc" d="M 0 229 l 543 0" fill="none" stroke="none" strokeWidth="2" />
       </svg>
 
-      <svg
-        width="800"
-        height="600"
-        viewBox="0 0 800 600"
-        className="absolute bottom-0"
-      >
-        <path
-          id="ctr"
-          d="M 0 58 l 800 0"
-          fill="none"
-          stroke="none"
-          strokeWidth="2"
-        />
+      <svg width="800" height="600" viewBox="0 0 800 600" className="absolute bottom-0">
+        <path id="ctr" d="M 0 58 l 800 0" fill="none" stroke="none" strokeWidth="2" />
       </svg>
 
       {/* Converter Box */}
@@ -131,30 +116,19 @@ export default function Flow({ input, convertor, output }) {
       {/* Glow effects */}
       <style>
         {`
-          /* Smooth holographic shimmer for converter box */
           @keyframes holo-shimmer {
             0% { box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 40px rgba(255,0,255,0.2); }
             50% { box-shadow: 0 0 35px rgba(0,255,255,0.7), 0 0 60px rgba(255,0,255,0.5); }
             100% { box-shadow: 0 0 15px rgba(0,255,255,0.3), 0 0 40px rgba(255,0,255,0.2); }
           }
-          .animate-holo-shimmer {
-            animation: holo-shimmer 3s infinite ease-in-out;
-          }
+          .animate-holo-shimmer { animation: holo-shimmer 3s infinite ease-in-out; }
 
-          /* Quantum particles pulse dynamically */
           @keyframes pulse-glow {
             0%, 100% { box-shadow: 0 0 8px rgba(0,255,255,0.3), 0 0 15px rgba(255,0,255,0.2); }
             50% { box-shadow: 0 0 25px rgba(0,255,255,0.8), 0 0 40px rgba(255,0,255,0.5); }
           }
-          .animate-pulse-glow {
-            animation: pulse-glow 1.5s infinite ease-in-out;
-          }
-
-          /* Particle glow trails for moving letters */
-          .neon-particle {
-            filter: drop-shadow(0 0 8px rgba(0,255,255,0.5)) drop-shadow(0 0 15px rgba(255,0,255,0.3));
-            transition: filter 0.2s ease-in-out;
-          }
+          .animate-pulse-glow { animation: pulse-glow 1.5s infinite ease-in-out; }
+          .neon-particle { filter: drop-shadow(0 0 8px rgba(0,255,255,0.5)) drop-shadow(0 0 15px rgba(255,0,255,0.3)); transition: filter 0.2s ease-in-out; }
         `}
       </style>
     </div>

@@ -1,4 +1,4 @@
-import { createTimeline, createScope, svg } from "animejs";
+import { createTimeline, createScope, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
 import { Context } from "../Context/Context";
 
@@ -7,7 +7,8 @@ export default function Flow({ input, convertor, output }) {
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(null);
-  const { onComplete } = useContext(Context);
+  const tlRef = useRef(null)
+  const { onComplete, speed } = useContext(Context);
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -16,6 +17,7 @@ export default function Flow({ input, convertor, output }) {
       const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
+      tlRef.current = tl
 
       // Input letters animation
       input.forEach((letter, i) => {
@@ -87,6 +89,10 @@ export default function Flow({ input, convertor, output }) {
       lc.forEach((l) => l.remove());
     };
   }, [input, onComplete, output]);
+
+  useEffect(() => {
+    if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
+  }, [speed]);
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">

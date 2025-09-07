@@ -11,7 +11,7 @@ export default function Chat() {
       < NavBar />
       <div className="h-screen">
         <SideBar startChat={stage === 0 ? true : false} />
-        <ChatWindow startChat={stage === 0 ? true : false} input={data[stage].input} onComplete={onComplete} />
+        <ChatWindow startChat={stage === 0 ? true : false} input={data[stage] ? data[stage].input : ""} onComplete={onComplete} />
       </div>
     </div>
   )
