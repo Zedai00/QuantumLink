@@ -9,11 +9,13 @@ import GateToBinary from "./components/Convertors/GateToBinary";
 import BinaryJoiner from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import LetterMerger from "./components/Convertors/LetterMerger";
-import Chat from "./components/Chats/Chat";
+import AliceChat from "./components/Chats/AliceChat";
+import BobChat from "./components/Chats/BobChat";
 import BlochSphere from "./components/Convertors/BlochSphere/BlochSphere";
 import * as THREE from "three";
 
 export default function App() {
+  const [alice_msg, setAlice_msg] = useState("");
   const [stage, setStage] = useState(0);
   const [complete, setComplete] = useState(false);
   const [data, setData] = useState([]);
@@ -21,7 +23,7 @@ export default function App() {
   const aliceDirRef = useRef(new THREE.Vector3(0, 0, 1));
 
   const stages = [
-    Chat,
+    AliceChat,
     LetterSplitter,
     LetterToBinary,
     BinarySplitter,
@@ -31,7 +33,10 @@ export default function App() {
     BinaryJoiner,
     BinaryToLetter,
     LetterMerger,
+    BobChat,
   ];
+
+  const handleSetAliceMsg = (txt) => setAlice_msg(txt);
 
   const handleOnComplete = (input, output) => {
     if (stage >= stages.length - 1) {
@@ -55,10 +60,19 @@ export default function App() {
 
   const CurrentStage = stages[stage];
 
+  const ctxValue = {
+    // alice_msg: "",
+    // onAliceInput: handleSetAliceMsg,
+    onComplete: handleOnComplete,
+    stage,
+    speed,
+    data,
+  }
+
   return (
     <div className="h-screen w-screen flex flex-col justify-center items-center">
       {/* 🌐 Global Speed Slider — hidden in Chat stage */}
-      {stage !== 0 && (
+      {stage !== 0 && stage !== stages.length-1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
           <input
             type="range"
@@ -86,7 +100,7 @@ export default function App() {
       {complete && "Complete"}
       {!complete && (
         <Context.Provider
-          value={{ stage, data, onComplete: handleOnComplete, speed }}
+          value={ctxValue}
         >
           <CurrentStage />
         </Context.Provider>
@@ -94,4 +108,3 @@ export default function App() {
     </div>
   );
 }
-

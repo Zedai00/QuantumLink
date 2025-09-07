@@ -11,7 +11,7 @@ export default function LetterMerger() {
   const input = data[stage] ? data[stage].input : [...data[stage - 1].output];
 
   // Join letters into a single string
-  const output = data[stage] ? data[stage].output : [input.join("")];
+  const output = data[stage] ? data[stage].output : [input.reverse().join("")];
 
   return (
     <Flow input={input} convertor="Letter Merger" output={output} />

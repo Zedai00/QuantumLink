@@ -6,7 +6,7 @@ export default function SideBar({ startChat }) {
   ];
 
   return (
-    <div className="w-1/4 bg-gray-100 border-r overflow-y-auto">
+    <div className="w-1/3 h-full bg-gray-900 text-gray-200 border-r border-gray-700">
 
 
       {/* Chat list */}
@@ -24,9 +24,9 @@ export default function SideBar({ startChat }) {
             />
 
             {/* Chat details */}
-            <div className="flex-1">
-              <p className="font-semibold">{chat.name}</p>
-              <p className="text-sm text-gray-500 truncate">Hey! How are you?</p>
+            <div className="flex-1 bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+              <p className="font-semibold ">{chat.name}</p>
+              <p className="text-sm text-gray-500 truncate">Hey!</p>
             </div>
           </li>
         ))}
