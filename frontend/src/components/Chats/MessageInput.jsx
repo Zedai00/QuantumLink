@@ -21,7 +21,7 @@ export default function MessageInput({ onSend }) {
         value={text}
         onKeyDown={(e) => (e.key === "Enter" ? handleSend() : undefined)}
         onChange={(e) => setText(e.target.value)}
-        className="flex-1 border rounded-lg p-2 mr-2 bg-gray-900 border-gray-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500"
+        className="flex-1 border rounded-lg p-2 mr-2 text-white bg-gray-900 border-gray-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-500"
       />
       <button
         onClick={handleSend}
