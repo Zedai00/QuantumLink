@@ -4,27 +4,24 @@ import { useState } from "react";
 // import ChatWindow from "./components/Chats/ChatWindow";
 
 import LetterSplitter from "./components/Convertors/LetterSplitter";
-import { Context } from "./components/Context";
+import { Context } from "./components/Context/Context";
 import LetterToBinary from "./components/Convertors/LetterToBinary";
 import BinarySplitter from "./components/Convertors/BinarySplitter";
 import BinaryToGate from "./components/Convertors/BinaryToGate";
-import BlochSphere from "./components/Convertors/BlochSphere";
 import BlochPage from "./components/Convertors/BlochPage";
 import GateToBinary from "./components/Convertors/GateToBinary";
 import BinaryJoiner from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import LetterMerger from "./components/Convertors/LetterMerger";
+import Chat from "./components/Chats/Chat";
 
 export default function App() {
   const [stage, setStage] = useState(0)
   const [complete, setComplete] = useState(false)
-  const [data, setData] = useState([{
-    id: 0,
-    input: ["6"],
-    output: null
-  }])
+  const [data, setData] = useState([])
 
   const stages = [
+    Chat,
     LetterSplitter,
     LetterToBinary,
     BinarySplitter,
@@ -37,33 +34,32 @@ export default function App() {
   ]
 
   const handleOnComplete = (input, output) => {
-    console.log("Input: " + input)
-    console.log("Output: " + output)
-    if (stage >= stages.length - 1) {
-      setComplete(true)
-    } else {
-      if (data.find(elm => elm.id === stage)) {
+    console.log("Input:", input);
+    console.log("Output:", output);
 
-        setData(data.map((elm) => {
-          if (elm.id === stage) {
-            return {
-              ...elm,
-              input: input,
-              output: output
-            }
-          }
-        }))
-      } else {
-        setData([...data, {
-          id: stage,
-          input: input,
-          output: output
-        }])
-      }
-      setStage(stage + 1)
+    if (stage >= stages.length - 1) {
+      setComplete(true);
+      return;
     }
 
-  }
+    setData((prevData) => {
+      // Check if current stage already exists
+      const exists = prevData.find((elm) => elm.id === stage);
+
+      if (exists) {
+        // Update existing entry
+        return prevData.map((elm) =>
+          elm.id === stage ? { ...elm, input, output } : elm
+        );
+      } else {
+        // Add new entry
+        return [...prevData, { id: stage, input, output }];
+      }
+    });
+
+    // Use functional update to avoid stale state issues
+    setStage((prev) => prev + 1);
+  };
 
   const CurrentStage = stages[stage]
   return (

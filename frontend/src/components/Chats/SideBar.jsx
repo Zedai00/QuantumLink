@@ -1,4 +1,4 @@
-export default function SideBar({startChat}) {
+export default function SideBar({ startChat }) {
   const chats = [
     { name: startChat ? "Bob" : "Alice", img: startChat ? "/Bob-pp.jpg" : "/Alice-pp.jpg" },
     // { name: "Bob", img: "/Bob-pp.jpg" },
@@ -7,7 +7,7 @@ export default function SideBar({startChat}) {
 
   return (
     <div className="w-1/4 bg-gray-100 border-r overflow-y-auto">
-    
+
 
       {/* Chat list */}
       <ul>

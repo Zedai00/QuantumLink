@@ -1,22 +1,20 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
 import { createTimeline, createScope, svg } from "animejs";
-import BlochSphere from "./BlochSphere";
-import EntanglementToggle from "./EntanglementToggle";
-import { Context } from "../Context";
+import BlochSphere from "./BlochSphere/BlochSphere";
+import EntanglementToggle from "./BlochSphere/EntanglementToggle";
+import { Context } from "../Context/Context";
 import * as THREE from "three"
-import SineWave from "./SineWave";
+import SineWave from "./BlochSphere/SineWave";
 
-const input = ["X", "X", "Z", "Z", "I", "I", "XZ", "XZ"];
-const output = ["X", "X", "Z", "Z", "I", "I", "XZ", "XZ"];
 
 export default function BlochPage() {
-  // const { stage, data } = useContext(Context)
+  const { stage, data } = useContext(Context)
 
-  // const input = data[stage] ? data[stage].input : [...data[stage - 1].output.flat()]
-  // const output = data[stage] ? data[stage].output : input
+  const input = data[stage] ? data[stage].input : [...data[stage - 1].output.flat()]
+  const output = data[stage] ? data[stage].output : input
   const [selectedGate, setSelectedGate] = useState("RANDOM");
   const [quantumMode, setQuantumMode] = useState(false);
-  const [bellState, setBellState] = useState("Φ⁺");
+  // const [bellState, setBellState] = useState("Φ⁺");
   const aliceDirRef = useRef(new THREE.Vector3(0, 0, 1));
   const root = useRef(null);
   const scope = useRef(null);
@@ -107,9 +105,9 @@ export default function BlochPage() {
       <svg width="800" height="600" viewBox="0 0 800 600" className="absolute bottom-0"><path id="ctr" d="M 200 90 l 600 0" fill="none" stroke="none" /></svg>
 
       <div className="absolute bg-transparent rounded-full top-45 left-66 flex justify-center items-center z-50">
-        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={false} aliceDirRef={aliceDirRef} quantumMode={quantumMode} bellState={bellState} />
+        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={false} aliceDirRef={aliceDirRef} quantumMode={quantumMode} />
         <SineWave width={300} height={120} amplitude={25} frequency={0.05} speed={3} hideStart={0} />
-        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={true} aliceDirRef={aliceDirRef} quantumMode={quantumMode} bellState={bellState} />
+        <BlochSphere gateKey={gateKey} selectedGate={selectedGate} isBob={true} aliceDirRef={aliceDirRef} quantumMode={quantumMode} />
       </div>
 
       <div className="absolute top-4 flex gap-6">

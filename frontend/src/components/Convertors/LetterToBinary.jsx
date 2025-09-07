@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import Flow from "../FlowArray";
-import { Context } from "../Context";
+import Flow from "../Flows/FlowArray";
+import { Context } from "../Context/Context";
 
 export default function LetterToBinary() {
 

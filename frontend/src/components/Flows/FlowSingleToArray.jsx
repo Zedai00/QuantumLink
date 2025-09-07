@@ -1,8 +1,9 @@
-import { createScope, createTimeline, svg } from "animejs";
+import { createTimeline, createScope, svg } from "animejs";
 import { useContext, useEffect, useRef } from "react";
-import { Context } from "./Context";
+import { Context } from "../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
+
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(null);
@@ -16,19 +17,46 @@ export default function Flow({ input, convertor, output }) {
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
 
-      // Animate input letters
-      input.forEach((letter, i) => {
-        console.log(`input: ${input}`)
-        const el = document.createElement("div");
-        el.textContent = letter;
-        el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
+      // Input letters animation
+
+      const el = document.createElement("div");
+      el.textContent = input;
+      el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
           text-2xl font-extrabold text-cyan-300 
           bg-gradient-to-br from-[#1e1e2f] via-[#111827] to-[#000] 
           rounded-xl backdrop-blur-lg border border-cyan-400/50
           shadow-[0_0_25px_rgba(0,255,255,0.8)] 
           animate-pulse-glow neon-particle`;
 
-        root.current.prepend(el);
+      root.current.prepend(el);
+
+      tl.add(
+        el,
+        {
+          keyframes: {
+            "10%": { opacity: 1 },
+          },
+          translateX: ltcX,
+          translateY: ltcY,
+          rotate: ltcRotate,
+          opacity: 1,
+          loop: false,
+          onComplete: () => el.remove(),
+        },
+        "+=200"
+      );
+      // Output letters animation
+      output.forEach((elm, i) => {
+        const el = document.createElement("div");
+        el.textContent = elm;
+        el.className = `absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
+          text-xl font-extrabold text-pink-400 
+          bg-gradient-to-br from-[#0f0f1f] via-[#1a1a2e] to-[#000] 
+          rounded-xl backdrop-blur-lg border border-pink-400/50
+          shadow-[0_0_25px_rgba(255,0,255,0.8)] 
+          animate-pulse-glow neon-particle`;
+
+        root.current.appendChild(el);
 
         tl.add(
           el,
@@ -36,56 +64,21 @@ export default function Flow({ input, convertor, output }) {
             keyframes: {
               "10%": { opacity: 1 },
             },
-            translateX: ltcX,
-            translateY: ltcY,
-            rotate: ltcRotate,
+            translateX: ctrX,
+            translateY: ctrY,
+            rotate: ctrRotate,
             opacity: 1,
             loop: false,
-            onComplete: () => el.remove(),
-          },
-          "+=200"
-        );
-
-        // Animate grouped output letters for each input letter
-        output[i].forEach((elm, j) => {
-          console.log(`elm: ${elm}, output:${output}`)
-          const outEl = document.createElement("div");
-          outEl.textContent = elm;
-          outEl.className = `absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
-            text-xl font-extrabold text-pink-400 
-            bg-gradient-to-br from-[#0f0f1f] via-[#1a1a2e] to-[#000] 
-            rounded-xl backdrop-blur-lg border border-pink-400/50
-            shadow-[0_0_25px_rgba(255,0,255,0.8)] 
-            animate-pulse-glow neon-particle`;
-
-          root.current.appendChild(outEl);
-
-          tl.add(
-            outEl,
-            {
-              keyframes: {
-                "10%": { opacity: 1 },
-              },
-              translateX: ctrX,
-              translateY: ctrY,
-              rotate: ctrRotate,
-              opacity: 1,
-              loop: false,
-              onComplete: () => {
-                outEl.remove();
-                if (
-                  i === input.length - 1 &&
-                  j === output[i].length - 1 &&
-                  !hasCompleted.current
-                ) {
-                  hasCompleted.current = true;
-                  onComplete(input, output);
-                }
-              },
+            onComplete: () => {
+              if (i === output.length - 1 && !hasCompleted.current) {
+                hasCompleted.current = true;
+                onComplete(input, output);
+              }
+              el.remove();
             },
-            "-=1000"
-          );
-        });
+          },
+          "+=0"
+        );
       });
     });
 
@@ -98,7 +91,7 @@ export default function Flow({ input, convertor, output }) {
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
-      {/* Motion Paths */}
+      {/* Motion paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path
           id="ltc"
@@ -135,7 +128,7 @@ export default function Flow({ input, convertor, output }) {
         {convertor}
       </div>
 
-      {/* Neon Glow & Particle Effects */}
+      {/* Glow effects */}
       <style>
         {`
           /* Smooth holographic shimmer for converter box */

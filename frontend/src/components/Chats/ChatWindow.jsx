@@ -2,7 +2,7 @@ import { useState } from "react";
 import ChatMessage from "./ChatMessage";
 import MessageInput from "./MessageInput";
 
-export default function ChatWindow({startChat}) {
+export default function ChatWindow({ startChat, onComplete }) {
   const [messages, setMessages] = useState([
     // {
     //   sender: "Alice",
@@ -25,6 +25,7 @@ export default function ChatWindow({startChat}) {
     };
 
     setMessages((prev) => [...prev, newMessage]);
+    onComplete("", text)
   };
 
   return (
@@ -32,7 +33,7 @@ export default function ChatWindow({startChat}) {
       {/* Chat header */}
       <div className="h-12 bg-gray-200 flex items-center px-4 border-b">
         <span className="font-semibold flex gap-2 text-xl">
-          <img src={startChat ? "Bob-pp.jpg" : "Alice-pp.jpg"} alt="" className="size-7 rounded-full"/>
+          <img src={startChat ? "Bob-pp.jpg" : "Alice-pp.jpg"} alt="" className="size-7 rounded-full" />
           {startChat ? "Bob" : "Alice"}</span>
       </div>
 
@@ -44,7 +45,7 @@ export default function ChatWindow({startChat}) {
       </div>
 
       {/* Input */}
-      <MessageInput onSend={handleSendMessage}/>
+      <MessageInput onSend={handleSendMessage} />
     </div>
   );
 }

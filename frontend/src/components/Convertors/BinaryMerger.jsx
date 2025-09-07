@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import Flow from "../Flow2DToArray";
-import { Context } from "../Context";
+import Flow from "../Flows/Flow2DToArray";
+import { Context } from "../Context/Context";
 
 export default function BinaryJoiner() {
   const { stage, data } = useContext(Context);

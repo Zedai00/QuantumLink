@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import Flow from "../Flow2D";
-import { Context } from "../Context";
+import Flow from "../Flows/Flow2D";
+import { Context } from "../Context/Context";
 
 export default function BinaryToGate() {
 
