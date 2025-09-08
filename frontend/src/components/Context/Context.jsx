@@ -6,5 +6,6 @@ export const Context = createContext({
   speed: null,
   animate: null,
   onComplete: () => { },
-  onChatComplete: () => { }
+  onChatComplete: () => { },
+  onAliceInput: () => { },
 })

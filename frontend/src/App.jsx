@@ -10,8 +10,9 @@ import GateToBinary from "./components/Convertors/GateToBinary";
 import BinaryMerger from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import LetterMerger from "./components/Convertors/LetterMerger";
-import Chat from "./components/Chats/Chat";
 import QuantumCompletion from "./components/QuantumCompletion";
+import AliceChat from "./components/Chats/AliceChat";
+import BobChat from "./components/Chats/BobChat";
 
 export default function App() {
   const [stage, setStage] = useState(0);
@@ -22,7 +23,7 @@ export default function App() {
   const containerRef = useRef(null);
 
   const stages = [
-    Chat,
+    AliceChat,
     LetterSplitter,
     LetterToBinary,
     BinarySplitter,
@@ -32,6 +33,7 @@ export default function App() {
     BinaryMerger,
     BinaryToLetter,
     LetterMerger,
+    BobChat,
   ];
 
   // ✅ Smooth Stage Transition Handler (Anime.js v4)
@@ -60,9 +62,15 @@ export default function App() {
     });
   };
 
+  const handleLastStage = () => {
+    setTimeout(() => {
+      setComplete(true)
+    }, 5000)
+  }
+
   const handleOnComplete = () => {
     if (stage >= stages.length - 1) {
-      setComplete(true);
+      handleLastStage()
       return;
     }
     transitionStage(stage + 1);
@@ -70,12 +78,14 @@ export default function App() {
 
   const handlePrev = () => {
     if (stage <= 0) return;
+    if (stage === 1) setStagesData("")
     transitionStage(stage - 1);
   };
 
   const handleNext = () => {
     if (stage >= stages.length - 1) {
-      setComplete(true);
+      setStagesData("")
+      handleLastStage()
       return;
     }
     transitionStage(stage + 1);
@@ -147,6 +157,7 @@ export default function App() {
       { stage: 7, input: binary2D, output: mergedBinary },
       { stage: 8, input: mergedBinary, output: lettersBack },
       { stage: 9, input: lettersBack, output: mergedText },
+      { stage: 10, input: inputText, output: inputText }
     ];
   };
 
@@ -158,19 +169,19 @@ export default function App() {
 
   const handleRestart = () => {
     setComplete(false);
+    setStagesData("")
     setStage(0); // Reset stages
   };
 
+
   const CurrentStage = stages[stage];
 
+
   return (
-    <div
-      ref={containerRef}
-      className="h-screen w-screen flex flex-col justify-center items-center bg-[#030313] transition-all"
-    >
-      {/* Speed Slider */}
-      {stage !== 0 && !complete && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-50">
+    <div ref={containerRef} className="h-screen w-screen flex flex-col justify-center items-center">
+      {/* 🌐 Global Speed Slider — hidden in Chat stage */}
+      {stage !== 0 && stage !== stages.length - 1 && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
           <input
             type="range"
             min="0.1"
@@ -196,7 +207,7 @@ export default function App() {
       )}
 
       {/* Prev, Play, Next Buttons */}
-      {stage !== 0 && !complete && (
+      {stage !== 0 && stage !== stages.length - 1 && !complete && (
         <div className="absolute top-2 left-[50%-h-15] flex items-center gap-3 z-50 h-15 w-auto rounded-2xl p-5
           bg-gradient-to-r from-[#0f0f1f] via-[#111827] to-[#1a1a2e]
           border border-cyan-400/30
@@ -237,7 +248,7 @@ export default function App() {
       )}
 
       {/* Stage Indicator */}
-      {stage !== 0 && !complete && (
+      {stage !== 0 && stage !== stages.length - 1 && !complete && (
         <div className="absolute top-4 left-4 px-4 py-2 text-lg font-semibold rounded-xl
           bg-gradient-to-br from-[#111827] via-[#1a1a2e] to-[#0f0f1f]
           text-cyan-300 border border-cyan-400/40
@@ -267,4 +278,3 @@ export default function App() {
     </div>
   );
 }
-
