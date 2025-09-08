@@ -6,12 +6,10 @@ import * as THREE from "three";
 import SineWave from "./BlochSphere/SineWave";
 
 export default function BlochPage() {
-  const { stage, data, onComplete, speed } = useContext(Context);
+  const { stage, stagesData, onComplete, speed, animate } = useContext(Context);
 
-  const input = data[stage]
-    ? data[stage].input
-    : [...data[stage - 1].output.flat()];
-  const output = data[stage] ? data[stage].output : input;
+  const input = stagesData[stage].input
+  const output = stagesData[stage].output
 
 
   const [selectedGate, setSelectedGate] = useState("RANDOM");
@@ -25,6 +23,7 @@ export default function BlochPage() {
 
   useEffect(() => {
     hasCompleted.current = false;
+    const container = document.querySelector("#anime-container")
 
     scope.current = createScope({ root }).add(() => {
       const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
@@ -41,7 +40,7 @@ export default function BlochPage() {
           bg-gradient-to-br from-[#1e1e2f] via-[#111827] to-[#000] 
           rounded-xl backdrop-blur-lg border border-cyan-400/50
           shadow-[0_0_25px_rgba(0,255,255,0.8)] animate-pulse-glow neon-particle`;
-        root.current.prepend(el);
+        container.prepend(el);
 
         tl.add(
           el,
@@ -69,7 +68,7 @@ export default function BlochPage() {
           bg-gradient-to-br from-[#0f0f1f] via-[#1a1a2e] to-[#000] 
           rounded-xl backdrop-blur-lg border border-pink-400/50
           shadow-[0_0_25px_rgba(255,0,255,0.8)] animate-pulse-glow neon-particle`;
-        root.current.appendChild(elm);
+        container.appendChild(elm);
 
         tl.add(
           elm,
@@ -103,11 +102,21 @@ export default function BlochPage() {
   }, [speed]);
 
 
+  useEffect(() => {
+    if (tlRef) {
+      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    }
+  }, [animate])
   return (
     <div ref={root} className="relative bg-[#030313] h-full w-full overflow-hidden">
       {/* Motion paths */}
-      <svg width="500" height="600" viewBox="0 0 500 600"><path id="ltc" d="M 0 260 l 325 0" fill="none" stroke="none" /></svg>
-      <svg width="800" height="600" viewBox="0 0 800 600" className="absolute bottom-0"><path id="ctr" d="M 200 90 l 600 0" fill="none" stroke="none" /></svg>
+      <svg width="500" height="600" viewBox="0 0 500 600"><path id="ltc" d="M 0 265 l 350 0" fill="none" stroke="none" /></svg>
+      <svg width="800" height="600" viewBox="0 0 800 600" className="absolute bottom-0"><path id="ctr" d="M 195 90 l 600 0" fill="none" stroke="none" /></svg>
+
+      <div
+        id="anime-container"
+        className="absolute top-0 left-0 w-full h-full pointer-events-none"
+      />
 
       {/* Canvas appears instantly with initial gate */}
       <div className="absolute bg-transparent rounded-full top-45 left-66 flex justify-center items-center z-50">

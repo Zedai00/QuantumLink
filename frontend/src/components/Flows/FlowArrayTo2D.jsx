@@ -7,7 +7,7 @@ export default function Flow({ input, convertor, output }) {
   const scope = useRef(null);
   const hasCompleted = useRef(null);
   const tlRef = useRef(null)
-  const { onComplete, speed } = useContext(Context);
+  const { onComplete, speed, animate } = useContext(Context);
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -20,7 +20,6 @@ export default function Flow({ input, convertor, output }) {
 
       // Animate input letters
       input.forEach((letter, i) => {
-        console.log(`input: ${input}`)
         const el = document.createElement("div");
         el.textContent = letter;
         el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
@@ -50,7 +49,6 @@ export default function Flow({ input, convertor, output }) {
 
         // Animate grouped output letters for each input letter
         output[i].forEach((elm, j) => {
-          console.log(`elm: ${elm}, output:${output}`)
           const outEl = document.createElement("div");
           outEl.textContent = elm;
           outEl.className = `absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
@@ -101,6 +99,11 @@ export default function Flow({ input, convertor, output }) {
   useEffect(() => {
     if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
   }, [speed]);
+  useEffect(() => {
+    if (tlRef) {
+      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    }
+  }, [animate])
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">

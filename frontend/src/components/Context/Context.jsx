@@ -2,6 +2,9 @@ import { createContext } from "react";
 
 export const Context = createContext({
   stage: null,
-  data: null,
-  onComplete: null
+  stagesData: null,
+  speed: null,
+  animate: null,
+  onComplete: () => { },
+  onChatComplete: () => { }
 })

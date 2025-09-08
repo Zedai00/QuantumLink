@@ -5,13 +5,13 @@ import SideBar from "./SideBar";
 import { Context } from "../Context/Context"
 
 export default function Chat() {
-  const { onComplete, data, stage } = useContext(Context)
+  const { stagesData, stage, onChatComplete } = useContext(Context)
   return (
     <div className="w-screen h-screen">
       < NavBar />
       <div className="h-screen">
         <SideBar startChat={stage === 0 ? true : false} />
-        <ChatWindow startChat={stage === 0 ? true : false} input={data[stage] ? data[stage].input : ""} onComplete={onComplete} />
+        <ChatWindow startChat={stage === 0 ? true : false} input={stagesData[stage] ? stagesData[stage].input : ""} onComplete={onChatComplete} />
       </div>
     </div>
   )

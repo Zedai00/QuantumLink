@@ -24,7 +24,7 @@ export default function SineWave({
       ctx.lineWidth = 3;
 
       for (let x = hideStart; x <= width; x++) {
-        const y = height / 2 + amplitude * Math.sin(frequency * (x + Date.now() * speed * 0.1));
+        const y = height / 2 + amplitude * Math.sin(frequency * (x - Date.now() * speed * 0.1));
         if (x === hideStart) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }

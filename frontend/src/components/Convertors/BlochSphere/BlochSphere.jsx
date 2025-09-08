@@ -12,8 +12,8 @@ export default function BlochSphere({
   isBob,
   aliceDirRef,
 }) {
-  const RADIUS = 4;
-  const LABEL_OFFSET = RADIUS + 0.5; // Distance of labels from the sphere
+  const RADIUS = 5;
+  const LABEL_OFFSET = RADIUS + 0; // Distance of labels from the sphere
 
   // 🎨 Modern colors optimized for a dark background
   const COLORS = {

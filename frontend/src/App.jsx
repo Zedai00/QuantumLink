@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { animate } from "animejs";
 import LetterSplitter from "./components/Convertors/LetterSplitter";
 import { Context } from "./components/Context/Context";
 import LetterToBinary from "./components/Convertors/LetterToBinary";
@@ -6,19 +7,19 @@ import BinarySplitter from "./components/Convertors/BinarySplitter";
 import BinaryToGate from "./components/Convertors/BinaryToGate";
 import BlochPage from "./components/Convertors/BlochPage";
 import GateToBinary from "./components/Convertors/GateToBinary";
-import BinaryJoiner from "./components/Convertors/BinaryMerger";
+import BinaryMerger from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import LetterMerger from "./components/Convertors/LetterMerger";
 import Chat from "./components/Chats/Chat";
-import BlochSphere from "./components/Convertors/BlochSphere/BlochSphere";
-import * as THREE from "three";
+import QuantumCompletion from "./components/QuantumCompletion";
 
 export default function App() {
   const [stage, setStage] = useState(0);
   const [complete, setComplete] = useState(false);
-  const [data, setData] = useState([]);
   const [speed, setSpeed] = useState(1);
-  const aliceDirRef = useRef(new THREE.Vector3(0, 0, 1));
+  const [animateState, setAnimateState] = useState(true);
+  const [stagesData, setStagesData] = useState([]);
+  const containerRef = useRef(null);
 
   const stages = [
     Chat,
@@ -28,65 +29,237 @@ export default function App() {
     BinaryToGate,
     BlochPage,
     GateToBinary,
-    BinaryJoiner,
+    BinaryMerger,
     BinaryToLetter,
     LetterMerger,
   ];
 
-  const handleOnComplete = (input, output) => {
+  // ✅ Smooth Stage Transition Handler (Anime.js v4)
+  const transitionStage = (nextStage) => {
+    if (!containerRef.current) return;
+
+    // Fade out, shrink & blur
+    animate(containerRef.current, {
+      opacity: [1, 0],
+      scale: [1, 0.96],
+      filter: ["blur(0px)", "blur(10px)"],
+      duration: 350,
+      ease: "inOutSine",
+    }).then(() => {
+      // Switch the stage AFTER fade out completes
+      setStage(nextStage);
+
+      // Fade back in with expansion
+      animate(containerRef.current, {
+        opacity: [0, 1],
+        scale: [0.96, 1],
+        filter: ["blur(10px)", "blur(0px)"],
+        duration: 400,
+        ease: "outExpo",
+      });
+    });
+  };
+
+  const handleOnComplete = () => {
     if (stage >= stages.length - 1) {
       setComplete(true);
       return;
     }
+    transitionStage(stage + 1);
+  };
 
-    setData((prevData) => {
-      const exists = prevData.find((elm) => elm.id === stage);
-      if (exists) {
-        return prevData.map((elm) =>
-          elm.id === stage ? { ...elm, input, output } : elm
-        );
-      } else {
-        return [...prevData, { id: stage, input, output }];
+  const handlePrev = () => {
+    if (stage <= 0) return;
+    transitionStage(stage - 1);
+  };
+
+  const handleNext = () => {
+    if (stage >= stages.length - 1) {
+      setComplete(true);
+      return;
+    }
+    transitionStage(stage + 1);
+  };
+
+  const generateStagesData = (inputText) => {
+    const letters = inputText.split("");
+    const binary = letters.map((l) => l.charCodeAt(0).toString(2).padStart(8, "0"));
+    const binarySplit = binary.map((item) =>
+      item.split("").reduce((acc, char, index) => {
+        if (index % 2 === 0) acc.push("");
+        acc[acc.length - 1] += char;
+        return acc;
+      }, [])
+    );
+
+    const gates = [...binarySplit].map((item) =>
+      item.map((letter) => {
+        switch (letter) {
+          case "00":
+            return "I";
+          case "01":
+            return "X";
+          case "10":
+            return "Z";
+          case "11":
+            return "XZ";
+          default:
+            return "I";
+        }
+      })
+    );
+
+    const blochVisual = [...gates.flat()];
+    const gatesBack = blochVisual.map((item) => {
+      switch (item) {
+        case "I":
+          return "00";
+        case "X":
+          return "01";
+        case "Z":
+          return "10";
+        case "XZ":
+          return "11";
+        default:
+          return "00";
       }
     });
 
-    setStage((prev) => prev + 1);
+    const chunkSize = 4;
+    const binary2D = [];
+    for (let i = 0; i < gatesBack.length; i += chunkSize) {
+      binary2D.push(gatesBack.slice(i, i + chunkSize));
+    }
+    const mergedBinary = [...binary2D].map((group) => group.join(""));
+    const lettersBack = [...mergedBinary].map((binaryStr) =>
+      String.fromCharCode(parseInt(binaryStr, 2))
+    );
+    const mergedText = lettersBack.join("");
+
+    return [
+      { stage: 0, input: inputText, output: inputText },
+      { stage: 1, input: inputText, output: letters },
+      { stage: 2, input: letters, output: binary },
+      { stage: 3, input: binary, output: binarySplit },
+      { stage: 4, input: [...binarySplit], output: gates },
+      { stage: 5, input: [...gates.flat()], output: blochVisual },
+      { stage: 6, input: blochVisual, output: gatesBack },
+      { stage: 7, input: binary2D, output: mergedBinary },
+      { stage: 8, input: mergedBinary, output: lettersBack },
+      { stage: 9, input: lettersBack, output: mergedText },
+    ];
+  };
+
+  const handleChatComplete = (userInput) => {
+    const data = generateStagesData(userInput);
+    setStagesData(data);
+    transitionStage(1); // Instead of setStage(1), use transition
+  };
+
+  const handleRestart = () => {
+    setComplete(false);
+    setStage(0); // Reset stages
   };
 
   const CurrentStage = stages[stage];
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center">
-      {/* 🌐 Global Speed Slider — hidden in Chat stage */}
-      {stage !== 0 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
+    <div
+      ref={containerRef}
+      className="h-screen w-screen flex flex-col justify-center items-center bg-[#030313] transition-all"
+    >
+      {/* Speed Slider */}
+      {stage !== 0 && !complete && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-50">
           <input
             type="range"
             min="0.1"
-            max="5"
+            max="10"
             step="0.1"
             value={speed}
             onChange={(e) => setSpeed(+e.target.value)}
+            className="w-64 h-2 rounded-full appearance-none cursor-pointer
+              bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600
+              shadow-[0_0_15px_rgba(0,255,255,0.6)]
+              border border-cyan-300/40
+              backdrop-blur-md
+              accent-cyan-500"
+            style={{ WebkitAppearance: "none" }}
           />
-          <span>{speed}x</span>
+          <span className="text-cyan-300 font-bold text-lg px-3 py-1 rounded-lg
+            bg-[#0f0f1f]/70 border border-cyan-400/30
+            shadow-[0_0_15px_rgba(0,255,255,0.6)]
+            backdrop-blur-md">
+            {speed}x
+          </span>
         </div>
       )}
 
-      {/* ✅ Hidden BlochSphere Preload */}
-      <div className="absolute opacity-0 pointer-events-none">
-        <BlochSphere
-          gateKey={0}
-          selectedGate="I"
-          isBob={false}
-          aliceDirRef={aliceDirRef}
-          quantumMode={false}
-        />
-      </div>
+      {/* Prev, Play, Next Buttons */}
+      {stage !== 0 && !complete && (
+        <div className="absolute top-2 left-[50%-h-15] flex items-center gap-3 z-50 h-15 w-auto rounded-2xl p-5
+          bg-gradient-to-r from-[#0f0f1f] via-[#111827] to-[#1a1a2e]
+          border border-cyan-400/30
+          shadow-[0_0_25px_rgba(0,255,255,0.4)]
+          backdrop-blur-md
+          text-white">
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
+              text-cyan-300 border border-cyan-400/50
+              shadow-[0_0_15px_rgba(0,255,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
+              transition-all duration-300"
+            onClick={handlePrev}
+          >
+            Prev
+          </button>
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#2d0f2d] via-[#3b0f3b] to-[#1a001a]
+              text-pink-400 border border-pink-400/50
+              shadow-[0_0_15px_rgba(255,0,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(255,0,255,0.8)]
+              transition-all duration-300"
+            onClick={() => setAnimateState((prev) => !prev)}
+          >
+            {animateState ? "Pause" : "Play"}
+          </button>
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
+              text-cyan-300 border border-cyan-400/50
+              shadow-[0_0_15px_rgba(0,255,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
+              transition-all duration-300"
+            onClick={handleNext}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
-      {complete && "Complete"}
-      {!complete && (
+      {/* Stage Indicator */}
+      {stage !== 0 && !complete && (
+        <div className="absolute top-4 left-4 px-4 py-2 text-lg font-semibold rounded-xl
+          bg-gradient-to-br from-[#111827] via-[#1a1a2e] to-[#0f0f1f]
+          text-cyan-300 border border-cyan-400/40
+          shadow-[0_0_20px_rgba(0,255,255,0.5)]
+          backdrop-blur-md z-50">
+          Stage {stage} / {stages.length - 1}
+        </div>
+      )}
+
+      {/* Render Current Stage */}
+      {complete ? (
+        <QuantumCompletion decodedMessage={stagesData[0].input} onRestart={handleRestart} />
+      ) : (
         <Context.Provider
-          value={{ stage, data, onComplete: handleOnComplete, speed }}
+          value={{
+            stage,
+            stagesData,
+            speed,
+            animate: animateState,
+            onComplete: handleOnComplete,
+            onChatComplete: handleChatComplete,
+          }}
         >
           <CurrentStage />
         </Context.Provider>

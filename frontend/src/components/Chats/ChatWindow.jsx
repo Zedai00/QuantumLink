@@ -25,7 +25,7 @@ export default function ChatWindow({ startChat, onComplete }) {
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    onComplete("", text)
+    onComplete(text)
   };
 
   return (

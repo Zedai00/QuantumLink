@@ -7,7 +7,7 @@ export default function Flow({ input, convertor, output }) {
   const scope = useRef(null);
   const hasCompleted = useRef(null);
   const tlRef = useRef(null);
-  const { onComplete, speed } = useContext(Context); // use global speed
+  const { onComplete, speed, animate } = useContext(Context); // use global speed
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -69,7 +69,7 @@ export default function Flow({ input, convertor, output }) {
             onComplete: () => {
               if (i === output.length - 1 && !hasCompleted.current) {
                 hasCompleted.current = true;
-                onComplete(input, output);
+                onComplete();
               }
               el.remove();
             },
@@ -90,6 +90,12 @@ export default function Flow({ input, convertor, output }) {
   useEffect(() => {
     if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
   }, [speed]);
+
+  useEffect(() => {
+    if (tlRef) {
+      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    }
+  }, [animate])
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">

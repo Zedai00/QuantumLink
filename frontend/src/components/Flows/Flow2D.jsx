@@ -7,7 +7,7 @@ export default function Flow({ input, convertor, output }) {
   const scope = useRef(null);
   const hasCompleted = useRef(false);
   const tlRef = useRef(null)
-  const { onComplete, speed } = useContext(Context);
+  const { onComplete, speed, animate } = useContext(Context);
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -83,7 +83,7 @@ export default function Flow({ input, convertor, output }) {
                   !hasCompleted.current
                 ) {
                   hasCompleted.current = true;
-                  onComplete(input, output);
+                  onComplete();
                 }
               },
             },
@@ -99,6 +99,12 @@ export default function Flow({ input, convertor, output }) {
       lc.forEach((l) => l.remove());
     };
   }, [input, onComplete, output]);
+
+  useEffect(() => {
+    if (tlRef) {
+      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    }
+  }, [animate])
 
   useEffect(() => {
     if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
