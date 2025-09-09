@@ -33,9 +33,6 @@ export default function DynamicArrow({ selectedGate, gateKey, isBob, aliceDirRef
       else if (isNearAxis(dir, new THREE.Vector3(0, 0, 1)) || isNearAxis(dir, new THREE.Vector3(0, 0, -1)))
         targetDir.current.set(1, 0, 0);
       else targetDir.current.set(1, 0, 0);
-    } else {
-      // 👇 DEFAULT fallback for RANDOM or undefined gates
-      targetDir.current.set(0, 0, 1);
     }
   }, [selectedGate, gateKey, isBob]);
 

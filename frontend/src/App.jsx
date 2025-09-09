@@ -21,6 +21,7 @@ export default function App() {
   const [speed, setSpeed] = useState(1);
   const [animateState, setAnimateState] = useState(true);
   const [stagesData, setStagesData] = useState([]);
+  const [circuitView, setCircuitView] = useState(false); // Toggle Bloch <-> Circuit
   const containerRef = useRef(null);
 
   const stages = [
@@ -37,11 +38,9 @@ export default function App() {
     BobChat,
   ];
 
-  // ✅ Smooth Stage Transition Handler (Anime.js v4)
   const transitionStage = (nextStage) => {
     if (!containerRef.current) return;
 
-    // Fade out, shrink & blur
     animate(containerRef.current, {
       opacity: [1, 0],
       scale: [1, 0.96],
@@ -49,10 +48,8 @@ export default function App() {
       duration: 350,
       ease: "inOutSine",
     }).then(() => {
-      // Switch the stage AFTER fade out completes
       setStage(nextStage);
 
-      // Fade back in with expansion
       animate(containerRef.current, {
         opacity: [0, 1],
         scale: [0.96, 1],
@@ -65,13 +62,13 @@ export default function App() {
 
   const handleLastStage = () => {
     setTimeout(() => {
-      setComplete(true)
-    }, 5000)
-  }
+      setComplete(true);
+    }, 8000);
+  };
 
   const handleOnComplete = () => {
     if (stage >= stages.length - 1) {
-      handleLastStage()
+      handleLastStage();
       return;
     }
     transitionStage(stage + 1);
@@ -79,14 +76,14 @@ export default function App() {
 
   const handlePrev = () => {
     if (stage <= 0) return;
-    if (stage === 1) setStagesData("")
+    if (stage === 1) setStagesData("");
     transitionStage(stage - 1);
   };
 
   const handleNext = () => {
     if (stage >= stages.length - 1) {
-      setStagesData("")
-      handleLastStage()
+      setStagesData("");
+      handleLastStage();
       return;
     }
     transitionStage(stage + 1);
@@ -94,7 +91,9 @@ export default function App() {
 
   const generateStagesData = (inputText) => {
     const letters = inputText.split("");
-    const binary = letters.map((l) => l.charCodeAt(0).toString(2).padStart(8, "0"));
+    const binary = letters.map((l) =>
+      l.charCodeAt(0).toString(2).padStart(8, "0")
+    );
     const binarySplit = binary.map((item) =>
       item.split("").reduce((acc, char, index) => {
         if (index % 2 === 0) acc.push("");
@@ -154,33 +153,142 @@ export default function App() {
       { stage: 3, input: binary, output: binarySplit },
       { stage: 4, input: [...binarySplit], output: gates },
       { stage: 5, input: [...gates.flat()], output: blochVisual },
-      { stage: 6, input: blochVisual, output: gatesBack },
-      { stage: 7, input: binary2D, output: mergedBinary },
-      { stage: 8, input: mergedBinary, output: lettersBack },
-      { stage: 9, input: lettersBack, output: mergedText },
-      { stage: 10, input: inputText, output: inputText }
+      { stage: 7, input: blochVisual, output: gatesBack },
+      { stage: 8, input: binary2D, output: mergedBinary },
+      { stage: 9, input: mergedBinary, output: lettersBack },
+      { stage: 10, input: lettersBack, output: mergedText },
+      { stage: 11, input: inputText, output: inputText },
     ];
   };
 
   const handleChatComplete = (userInput) => {
     const data = generateStagesData(userInput);
     setStagesData(data);
-    transitionStage(1); // Instead of setStage(1), use transition
+    transitionStage(1);
   };
 
   const handleRestart = () => {
     setComplete(false);
-    setStagesData("")
-    setStage(0); // Reset stages
+    setStagesData("");
+    setStage(0);
+    setCircuitView(false);
   };
 
-
-  const CurrentStage = stages[stage];
-
+  const isBlochPage = stages[stage] === BlochPage;
+  const StageToRender = isBlochPage && circuitView ? Circuit : stages[stage];
 
   return (
-    <div ref={containerRef} className="h-screen w-screen flex flex-col justify-center items-center">
-      <Circuit stagesData={[{ input: ["X", "Z", "I", "XZ"] }]} stage={stage} onComplete={handleOnComplete} />
+    <div
+      ref={containerRef}
+      className="h-screen w-screen flex flex-col justify-center items-center"
+    >
+      {/* Bloch <-> Circuit Toggle */}
+      {isBlochPage && (
+        <button
+          onClick={() => setCircuitView((prev) => !prev)}
+          className="absolute top-5 right-5 px-4 py-2 bg-[#7f00ff] text-white rounded-md shadow-md hover:bg-[#a14cff] transition z-50"
+        >
+          {circuitView ? "Back to Bloch" : "Go to Circuit"}
+        </button>
+      )}
+
+      {/* Speed Slider */}
+      {stage !== 0 && stage !== stages.length - 1 && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
+          <input
+            type="range"
+            min="0.1"
+            max="10"
+            step="0.1"
+            value={speed}
+            onChange={(e) => setSpeed(+e.target.value)}
+            className="w-64 h-2 rounded-full appearance-none cursor-pointer
+              bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600
+              shadow-[0_0_15px_rgba(0,255,255,0.6)]
+              border border-cyan-300/40
+              backdrop-blur-md
+              accent-cyan-500"
+            style={{ WebkitAppearance: "none" }}
+          />
+          <span className="text-cyan-300 font-bold text-lg px-3 py-1 rounded-lg
+            bg-[#0f0f1f]/70 border border-cyan-400/30
+            shadow-[0_0_15px_rgba(0,255,255,0.6)]
+            backdrop-blur-md">
+            {speed}x
+          </span>
+        </div>
+      )}
+
+      {/* Prev / Play / Next Buttons */}
+      {stage !== 0 && stage !== stages.length - 1 && !complete && (
+        <div className="absolute top-2 left-[50%-h-15] flex items-center gap-3 z-50 h-15 w-auto rounded-2xl p-5
+          bg-gradient-to-r from-[#0f0f1f] via-[#111827] to-[#1a1a2e]
+          border border-cyan-400/30
+          shadow-[0_0_25px_rgba(0,255,255,0.4)]
+          backdrop-blur-md
+          text-white">
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
+              text-cyan-300 border border-cyan-400/50
+              shadow-[0_0_15px_rgba(0,255,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
+              transition-all duration-300"
+            onClick={handlePrev}
+          >
+            Prev
+          </button>
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#2d0f2d] via-[#3b0f3b] to-[#1a001a]
+              text-pink-400 border border-pink-400/50
+              shadow-[0_0_15px_rgba(255,0,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(255,0,255,0.8)]
+              transition-all duration-300"
+            onClick={() => setAnimateState((prev) => !prev)}
+          >
+            {animateState ? "Pause" : "Play"}
+          </button>
+          <button
+            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
+              text-cyan-300 border border-cyan-400/50
+              shadow-[0_0_15px_rgba(0,255,255,0.5)]
+              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
+              transition-all duration-300"
+            onClick={handleNext}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Stage Indicator */}
+      {stage !== 0 && stage !== stages.length - 1 && !complete && (
+        <div className="absolute top-4 left-4 px-4 py-2 text-lg font-semibold rounded-xl
+          bg-gradient-to-br from-[#111827] via-[#1a1a2e] to-[#0f0f1f]
+          text-cyan-300 border border-cyan-400/40
+          shadow-[0_0_20px_rgba(0,255,255,0.5)]
+          backdrop-blur-md z-50">
+          Stage {stage} / {stages.length - 1}
+        </div>
+      )}
+
+      {/* Render Current Stage */}
+      {complete ? (
+        <QuantumCompletion decodedMessage={stagesData[0].input} onRestart={handleRestart} />
+      ) : (
+        <Context.Provider
+          value={{
+            stage,
+            stagesData,
+            speed,
+            animate: animateState,
+            onComplete: handleOnComplete,
+            onChatComplete: handleChatComplete,
+          }}
+        >
+          <StageToRender />
+        </Context.Provider>
+      )}
     </div>
   );
 }
+

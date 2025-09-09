@@ -13,6 +13,7 @@ import LetterMerger from "./components/Convertors/LetterMerger";
 import QuantumCompletion from "./components/QuantumCompletion";
 import AliceChat from "./components/Chats/AliceChat";
 import BobChat from "./components/Chats/BobChat";
+import Circuit from "./components/Convertors/Circuit";
 
 export default function App() {
   const [stage, setStage] = useState(0);
@@ -28,7 +29,8 @@ export default function App() {
     LetterToBinary,
     BinarySplitter,
     BinaryToGate,
-    BlochPage,
+    // BlochPage,
+    Circuit,
     GateToBinary,
     BinaryMerger,
     BinaryToLetter,
@@ -179,102 +181,7 @@ export default function App() {
 
   return (
     <div ref={containerRef} className="h-screen w-screen flex flex-col justify-center items-center">
-      {/* 🌐 Global Speed Slider — hidden in Chat stage */}
-      {stage !== 0 && stage !== stages.length - 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
-          <input
-            type="range"
-            min="0.1"
-            max="10"
-            step="0.1"
-            value={speed}
-            onChange={(e) => setSpeed(+e.target.value)}
-            className="w-64 h-2 rounded-full appearance-none cursor-pointer
-              bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600
-              shadow-[0_0_15px_rgba(0,255,255,0.6)]
-              border border-cyan-300/40
-              backdrop-blur-md
-              accent-cyan-500"
-            style={{ WebkitAppearance: "none" }}
-          />
-          <span className="text-cyan-300 font-bold text-lg px-3 py-1 rounded-lg
-            bg-[#0f0f1f]/70 border border-cyan-400/30
-            shadow-[0_0_15px_rgba(0,255,255,0.6)]
-            backdrop-blur-md">
-            {speed}x
-          </span>
-        </div>
-      )}
-
-      {/* Prev, Play, Next Buttons */}
-      {stage !== 0 && stage !== stages.length - 1 && !complete && (
-        <div className="absolute top-2 left-[50%-h-15] flex items-center gap-3 z-50 h-15 w-auto rounded-2xl p-5
-          bg-gradient-to-r from-[#0f0f1f] via-[#111827] to-[#1a1a2e]
-          border border-cyan-400/30
-          shadow-[0_0_25px_rgba(0,255,255,0.4)]
-          backdrop-blur-md
-          text-white">
-          <button
-            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
-              text-cyan-300 border border-cyan-400/50
-              shadow-[0_0_15px_rgba(0,255,255,0.5)]
-              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
-              transition-all duration-300"
-            onClick={handlePrev}
-          >
-            Prev
-          </button>
-          <button
-            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#2d0f2d] via-[#3b0f3b] to-[#1a001a]
-              text-pink-400 border border-pink-400/50
-              shadow-[0_0_15px_rgba(255,0,255,0.5)]
-              hover:shadow-[0_0_25px_rgba(255,0,255,0.8)]
-              transition-all duration-300"
-            onClick={() => setAnimateState((prev) => !prev)}
-          >
-            {animateState ? "Pause" : "Play"}
-          </button>
-          <button
-            className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]
-              text-cyan-300 border border-cyan-400/50
-              shadow-[0_0_15px_rgba(0,255,255,0.5)]
-              hover:shadow-[0_0_25px_rgba(0,255,255,0.8)]
-              transition-all duration-300"
-            onClick={handleNext}
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Stage Indicator */}
-      {stage !== 0 && stage !== stages.length - 1 && !complete && (
-        <div className="absolute top-4 left-4 px-4 py-2 text-lg font-semibold rounded-xl
-          bg-gradient-to-br from-[#111827] via-[#1a1a2e] to-[#0f0f1f]
-          text-cyan-300 border border-cyan-400/40
-          shadow-[0_0_20px_rgba(0,255,255,0.5)]
-          backdrop-blur-md z-50">
-          Stage {stage} / {stages.length - 1}
-        </div>
-      )}
-
-      {/* Render Current Stage */}
-      {complete ? (
-        <QuantumCompletion decodedMessage={stagesData[0].input} onRestart={handleRestart} />
-      ) : (
-        <Context.Provider
-          value={{
-            stage,
-            stagesData,
-            speed,
-            animate: animateState,
-            onComplete: handleOnComplete,
-            onChatComplete: handleChatComplete,
-          }}
-        >
-          <CurrentStage />
-        </Context.Provider>
-      )}
+      <Circuit stagesData={[{ input: ["X", "Z", "I", "XZ"] }]} stage={stage} onComplete={handleOnComplete} />
     </div>
   );
 }

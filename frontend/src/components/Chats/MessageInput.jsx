@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Send, Image as ImageIcon } from "lucide-react";
 
-export default function MessageInput({ onSend, onImage }) {
+export default function MessageInput({ onSend }) {
   const [text, setText] = useState("");
 
   const handleSend = () => {
@@ -10,10 +10,6 @@ export default function MessageInput({ onSend, onImage }) {
     setText(""); // clear input after sending
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) onImage && onImage(file);
-  };
 
   return (
     <div className="h-16 flex items-center px-4 border-t border-cyan-400/20 bg-[#0a0a1a] shadow-[0_0_15px_rgba(0,255,255,0.15)]">
@@ -21,12 +17,6 @@ export default function MessageInput({ onSend, onImage }) {
       {/* Image Upload Button */}
       <label className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/20 to-cyan-500/20 border border-cyan-400/40 shadow-[0_0_12px_rgba(0,255,255,0.3)] cursor-pointer hover:scale-105 transition-transform duration-300">
         <ImageIcon size={22} className="text-cyan-300 group-hover:text-pink-400 transition-colors duration-300" />
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageUpload}
-        />
       </label>
 
       {/* Text Input */}

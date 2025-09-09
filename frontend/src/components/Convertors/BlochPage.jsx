@@ -4,6 +4,7 @@ import BlochSphere from "./BlochSphere/BlochSphere";
 import { Context } from "../Context/Context";
 import * as THREE from "three";
 import SineWave from "./BlochSphere/SineWave";
+import Circuit from "./Circuit";
 
 export default function BlochPage() {
   const { stage, stagesData, onComplete, speed, animate } = useContext(Context);
