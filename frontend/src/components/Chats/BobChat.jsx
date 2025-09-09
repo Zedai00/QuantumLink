@@ -5,7 +5,7 @@ import SideBar from "./SideBar";
 import { Context } from "../Context/Context";
 
 export default function Chat() {
-  const { onComplete, stagesData, stage } = useContext(Context);
+  const { onComplete, stagesData, stage, onImageComplete } = useContext(Context);
 
   const input = stagesData[stage] ? stagesData[stage].input : [...stagesData[stage - 1].output];
 
@@ -18,6 +18,7 @@ export default function Chat() {
           startChat={false}
           input={input}
           onComplete={onComplete}
+          onImageComplete={onImageComplete}
         />
       </div>
     </div>

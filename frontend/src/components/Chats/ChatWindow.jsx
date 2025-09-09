@@ -2,7 +2,7 @@ import ChatMessage from "./ChatMessage";
 import DynamicAvatar from "./DynamicAvatar";
 import MessageInput from "./MessageInput";
 
-export default function ChatWindow({ startChat, onComplete, input }) {
+export default function ChatWindow({ startChat, onComplete, input, onImageComplete }) {
   // Function to send a new message
   const handleSendMessage = (text) => {
     if (!text.trim()) return; // Prevent empty messages
@@ -12,6 +12,11 @@ export default function ChatWindow({ startChat, onComplete, input }) {
   if (!startChat) {
     onComplete("")
   }
+
+  const handleImageSend = (file) => {
+    onImageComplete(file)
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-[#030313] border border-cyan-400/30  shadow-[0_0_30px_rgba(0,255,255,0.2)] overflow-hidden">
       {/* Chat Header */}
@@ -64,7 +69,7 @@ export default function ChatWindow({ startChat, onComplete, input }) {
 
       {/* Message Input */}
       <div className="border-t border-cyan-400/30 bg-[#0f0f1f] shadow-[0_-2px_15px_rgba(0,255,255,0.1)]">
-        <MessageInput onSend={handleSendMessage} />
+        <MessageInput onSend={handleSendMessage} onImage={handleImageSend} />
       </div>
     </div>
   );

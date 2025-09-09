@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Send, Image as ImageIcon } from "lucide-react";
 
-export default function MessageInput({ onSend, onImageSelect }) {
+export default function MessageInput({ onSend, onImage }) {
   const [text, setText] = useState("");
 
   const handleSend = () => {
@@ -12,7 +12,7 @@ export default function MessageInput({ onSend, onImageSelect }) {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) onImageSelect && onImageSelect(file);
+    if (file) onImage && onImage(file);
   };
 
   return (

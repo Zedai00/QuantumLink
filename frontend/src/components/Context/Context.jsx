@@ -8,4 +8,5 @@ export const Context = createContext({
   onComplete: () => { },
   onChatComplete: () => { },
   onAliceInput: () => { },
+  onImageComplete: () => { }
 })
