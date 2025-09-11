@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 
-export default function DynamicArrow({ selectedGate, gateKey, isBob, aliceDirRef, quantumMode, bellState }) {
+export default function DynamicArrow({ selectedGate, gateKey, isBob, aliceDirRef, }) {
   const arrowRef = useRef();
   const currentDir = useRef(new THREE.Vector3(0, 0, 1));
   const targetDir = useRef(new THREE.Vector3(0, 0, 1));
@@ -19,34 +19,33 @@ export default function DynamicArrow({ selectedGate, gateKey, isBob, aliceDirRef
 
     const dir = currentDir.current.clone().normalize();
 
-    // X gate toggling +X ↔ -X
     if (selectedGate === "X") {
       if (isNearAxis(dir, new THREE.Vector3(1, 0, 0))) targetDir.current.set(-1, 0, 0);
       else if (isNearAxis(dir, new THREE.Vector3(-1, 0, 0))) targetDir.current.set(1, 0, 0);
-      else targetDir.current.set(1, 0, 0); // move to +X if elsewhere
-    }
-
-    // Z gate toggling +Z ↔ -Z
-    if (selectedGate === "Z") {
+      else targetDir.current.set(1, 0, 0);
+    } else if (selectedGate === "Z") {
       if (isNearAxis(dir, new THREE.Vector3(0, 0, 1))) targetDir.current.set(0, 0, -1);
       else if (isNearAxis(dir, new THREE.Vector3(0, 0, -1))) targetDir.current.set(0, 0, 1);
-      else targetDir.current.set(0, 0, 1); // move to +Z if elsewhere
-    }
-
-    // XZ gate moves between X and Z axes
-    if (selectedGate === "XZ") {
+      else targetDir.current.set(0, 0, 1);
+    } else if (selectedGate === "XZ") {
       if (isNearAxis(dir, new THREE.Vector3(1, 0, 0)) || isNearAxis(dir, new THREE.Vector3(-1, 0, 0)))
-        targetDir.current.set(0, 0, 1); // X → Z
+        targetDir.current.set(0, 0, 1);
       else if (isNearAxis(dir, new THREE.Vector3(0, 0, 1)) || isNearAxis(dir, new THREE.Vector3(0, 0, -1)))
-        targetDir.current.set(1, 0, 0); // Z → X
-      else targetDir.current.set(1, 0, 0); // default to X
+        targetDir.current.set(1, 0, 0);
+      else targetDir.current.set(1, 0, 0);
     }
-  }, [selectedGate, gateKey, isBob]); // gateKey ensures repeated presses work
+  }, [selectedGate, gateKey, isBob]);
+
+  useFrame(() => {
+    if (selectedGate === "RANDOM" && !isBob) {
+      const t = Date.now() * 0.001;
+      targetDir.current.set(Math.sin(t), Math.cos(t), 1).normalize();
+    }
+  });
 
   useFrame(() => {
     if (isBob) {
       const aliceVec = aliceDirRef.current.clone();
-      if (quantumMode && (bellState === "Ψ⁺" || bellState === "Ψ⁻")) aliceVec.multiplyScalar(-1);
       targetDir.current.copy(aliceVec);
     }
 

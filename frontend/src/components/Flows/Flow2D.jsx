@@ -1,12 +1,13 @@
-import { createScope, createTimeline, svg } from "animejs";
+import { createScope, createTimeline, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
-import { Context } from "./Context";
+import { Context } from "../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(false);
-  const { onComplete } = useContext(Context);
+  const tlRef = useRef(null)
+  const { onComplete, speed, animate } = useContext(Context);
 
   useEffect(() => {
     hasCompleted.current = false;
@@ -17,6 +18,7 @@ export default function Flow({ input, convertor, output }) {
       const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } =
         svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
+      tlRef.current = tl
 
       // ✅ We know input & output are always 2D arrays
       input.forEach((row, rowIndex) => {
@@ -81,7 +83,7 @@ export default function Flow({ input, convertor, output }) {
                   !hasCompleted.current
                 ) {
                   hasCompleted.current = true;
-                  onComplete(input, output);
+                  onComplete();
                 }
               },
             },
@@ -97,6 +99,16 @@ export default function Flow({ input, convertor, output }) {
       lc.forEach((l) => l.remove());
     };
   }, [input, onComplete, output]);
+
+  useEffect(() => {
+    if (tlRef) {
+      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    }
+  }, [animate])
+
+  useEffect(() => {
+    if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
+  }, [speed]);
 
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
@@ -120,7 +132,7 @@ export default function Flow({ input, convertor, output }) {
         rounded-xl shadow-[0_0_35px_rgba(0,255,255,0.9)]
         flex items-center justify-center text-cyan-300
         font-bold text-2xl border border-cyan-400/40 backdrop-blur-md
-        animate-holo-shimmer z-50"
+         z-50"
       >
         {convertor}
       </div>

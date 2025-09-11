@@ -1,50 +1,63 @@
 import { Check, CheckCheck } from "lucide-react";
+import DynamicAvatar from "./DynamicAvatar";
 
 export default function ChatMessage({ msg }) {
-  const isMe = msg.sender === "me";
+  const isMe = msg.sender === "Alice";
 
   return (
-    <div className={`flex items-end ${isMe ? "justify-end" : "justify-start"}`}>
-      {/* Show profile pic only for other person's messages */}
+    <div
+      className={`flex items-end mb-3 ${isMe ? "justify-end" : "justify-start"
+        }`}
+    >
+      {/* Avatar for other person's messages */}
       {!isMe && (
-        <img
-          src={msg.img || "/Bob-pp.jpg"} // fallback profile pic
-          alt={msg.sender}
-          className="w-8 h-8 rounded-full mr-2"
-        />
+        <div className="mr-2">
+          <DynamicAvatar name={msg.sender} size={32} />
+        </div>
       )}
 
       {/* Chat bubble */}
       <div
-        className={`relative px-3 py-2 rounded-lg max-w-xs text-sm ${
-          isMe ? "bg-green-500 text-white" : "bg-gray-300 text-black"
-        }`}
+        className={`relative px-4 py-3 rounded-2xl max-w-xs sm:max-w-sm text-sm shadow-lg transition-all duration-300 ${isMe
+            ? "bg-gradient-to-r from-cyan-500 to-pink-500 text-white shadow-[0_0_15px_rgba(255,0,255,0.4)]"
+            : "bg-[#1a1a2e] text-gray-200 border border-cyan-500/20 shadow-[0_0_10px_rgba(0,255,255,0.15)]"
+          }`}
       >
-        <p>{msg.text}</p>
+        {/* Text or image */}
+        {msg.image ? (
+          <img
+            src={msg.image}
+            alt="Sent content"
+            className="rounded-lg mb-2 max-w-full shadow-[0_0_10px_rgba(0,255,255,0.3)]"
+          />
+        ) : (
+          <p className="break-words leading-snug">{msg.text}</p>
+        )}
 
-        {/* Timestamp + status (for my messages) */}
+        {/* Timestamp + status */}
         <div className="flex items-center justify-end space-x-1 mt-1 text-xs opacity-80">
           <span>{msg.time}</span>
           {isMe && (
             <>
               {msg.status === "sent" && <Check size={14} />}
-              {msg.status === "delivered" && <CheckCheck size={14} />}
+              {msg.status === "delivered" && (
+                <CheckCheck size={14} className="text-cyan-300" />
+              )}
               {msg.status === "seen" && (
-                <CheckCheck size={14} className="text-blue-400" />
+                <CheckCheck size={14} className="text-pink-400" />
               )}
             </>
           )}
         </div>
       </div>
 
-      {/* Show profile pic for my messages if needed */}
+      {/* Avatar for my messages */}
       {isMe && (
-        <img
-          src={msg.img || "/Alice-pp.jpg"}
-          alt={msg.sender}
-          className="size-8 rounded-full ml-2"
-        />
+        <div className="ml-2">
+          <DynamicAvatar name={msg.sender} size={32} />
+        </div>
       )}
     </div>
   );
 }
+

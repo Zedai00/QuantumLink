@@ -1,17 +1,13 @@
 import { useContext } from "react";
-import Flow from "../FlowArray";
-import { Context } from "../Context";
+import Flow from "../Flows/FlowArray";
+import { Context } from "../Context/Context";
 
 export default function LetterToBinary() {
 
-  const { stage, data } = useContext(Context)
+  const { stage, stagesData } = useContext(Context)
 
-  const input = data[stage] ? [data[stage].input] : [...data[stage - 1].output]
-  const output = data[stage] ? data[stage].output : input.map((item) => {
-    return item.charCodeAt(0).toString(2).padStart(8, '0')
-  })
 
   return (
-    <Flow input={input} convertor="LetterToBinary" output={output} />
+    <Flow input={stagesData[stage].input} convertor="LetterToBinary" output={stagesData[stage].output} />
   );
 }

@@ -1,15 +1,13 @@
 import { useContext } from "react";
-import Flow from "../FlowSingleToArray";
-import { Context } from "../Context";
+import Flow from "../Flows/FlowSingleToArray";
+import { Context } from "../Context/Context";
 
 export default function LetterSplitter() {
 
-  const { stage, data } = useContext(Context)
+  const { stage, stagesData } = useContext(Context)
 
-  const input = data[stage].input
-  const output = data[stage].input[0].split("")
 
   return (
-    <Flow input={input} convertor="Letter Splitter" output={output} />
+    <Flow input={stagesData[stage].input} convertor="Letter Splitter" output={stagesData[stage].output} />
   );
 }
