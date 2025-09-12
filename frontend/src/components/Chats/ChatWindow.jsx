@@ -4,6 +4,7 @@ import MessageInput from "./MessageInput";
 
 export default function ChatWindow({ startChat, onComplete, input, onImageComplete }) {
   // Function to send a new message
+
   const handleSendMessage = (text) => {
     if (!text.trim()) return; // Prevent empty messages
     onComplete(text);

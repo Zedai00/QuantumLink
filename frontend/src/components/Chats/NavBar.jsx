@@ -1,6 +1,6 @@
 import DynamicAvatar from "./DynamicAvatar";
 
-export default function NavBar({ startChat }) {
+export default function NavBar({ startChat, onSettingsClick }) {
   return (
     <div className="h-14 bg-[#030313] flex items-center justify-between px-6 border-b border-cyan-400/30 shadow-[0_0_20px_rgba(0,255,255,0.1)] relative z-50">
 
@@ -19,7 +19,7 @@ export default function NavBar({ startChat }) {
           Images
           <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-cyan-400 to-pink-400 transition-all duration-300 group-hover:w-full rounded-lg"></span>
         </button>
-        <button className="relative text-cyan-300 hover:text-pink-400 transition-colors duration-300 font-medium group">
+        <button onClick={onSettingsClick} className="relative text-cyan-300 hover:text-pink-400 transition-colors duration-300 font-medium group">
           Settings
           <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-cyan-400 to-pink-400 transition-all duration-300 group-hover:w-full rounded-lg"></span>
         </button>

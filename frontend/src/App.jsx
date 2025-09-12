@@ -10,7 +10,7 @@ import GateToBinary from "./components/Convertors/GateToBinary";
 import BinaryMerger from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import LetterMerger from "./components/Convertors/LetterMerger";
-import QuantumCompletion from "./components/QuantumCompletion";
+import SuperdenseCompletion from "./components/SuperdenseCompletion";
 import AliceChat from "./components/Chats/AliceChat";
 import BobChat from "./components/Chats/BobChat";
 import Circuit from "./components/Convertors/Circuit";
@@ -22,6 +22,11 @@ export default function App() {
   const [animateState, setAnimateState] = useState(true);
   const [stagesData, setStagesData] = useState([]);
   const [circuitView, setCircuitView] = useState(false); // Toggle Bloch <-> Circuit
+
+  const [settings, setSettings] = useState({
+    errorRate: 0,
+    noiseMode: "depolarizing"
+  })
   const containerRef = useRef(null);
 
   const stages = [
@@ -63,7 +68,7 @@ export default function App() {
   const handleLastStage = () => {
     setTimeout(() => {
       setComplete(true);
-    }, 8000);
+    }, 5000);
   };
 
   const handleOnComplete = () => {
@@ -89,7 +94,25 @@ export default function App() {
     transitionStage(stage + 1);
   };
 
-  const generateStagesData = (inputText) => {
+  const calculateFidelity = (mode, errorRate) => {
+    let base = 1 - errorRate; // base from slider
+    switch (mode) {
+      case "ideal":
+        return base * 1.0;
+      case "depolarizing":
+        return base * (0.92 + Math.random() * 0.03); // 0.92–0.95
+      case "bit-flip":
+        return base * (0.88 + Math.random() * 0.04); // 0.88–0.92
+      case "phase-flip":
+        return base * (0.90 + Math.random() * 0.03); // 0.90–0.93
+      case "combined":
+        return base * (0.85 + Math.random() * 0.03); // 0.85–0.88
+      default:
+        return base;
+    }
+  };
+
+  const generateStagesData = (inputText, errorRate = 0, noiseMode = "depolarizing") => {
     const letters = inputText.split("");
     const binary = letters.map((l) =>
       l.charCodeAt(0).toString(2).padStart(8, "0")
@@ -119,7 +142,38 @@ export default function App() {
       })
     );
 
-    const blochVisual = [...gates.flat()];
+    const allGates = ["I", "X", "Z", "XZ"];
+    const blochVisual = [...gates.flat()].map((gate) => {
+      if (Math.random() < errorRate) {
+        switch (noiseMode) {
+          case "bit-flip":
+            return gate === "I" ? "X" : gate === "X" ? "I" : gate; // only flip X errors
+          case "phase-flip":
+            return gate === "I" ? "Z" : gate === "Z" ? "I" : gate; // only Z errors
+          case "depolarizing": {
+            const available = allGates.filter((g) => g !== gate);
+            return available[Math.floor(Math.random() * available.length)];
+          }
+          case "combined": {
+            // Apply both bit-flip and phase-flip randomly
+            let newGate = gate;
+            if (Math.random() < 0.5) {
+              // bit-flip
+              newGate = newGate === "I" ? "X" : newGate === "X" ? "I" : newGate;
+            }
+            if (Math.random() < 0.5) {
+              // phase-flip
+              newGate = newGate === "I" ? "Z" : newGate === "Z" ? "I" : newGate;
+            }
+            return newGate;
+          }
+          default:
+            return gate;
+        }
+      }
+      return gate;
+    });
+
     const gatesBack = blochVisual.map((item) => {
       switch (item) {
         case "I":
@@ -146,23 +200,29 @@ export default function App() {
     );
     const mergedText = lettersBack.join("");
 
+    const fidelityValue = calculateFidelity(settings.mode, settings.errorRate);
+
     return [
       { stage: 0, input: inputText, output: inputText },
       { stage: 1, input: inputText, output: letters },
       { stage: 2, input: letters, output: binary },
       { stage: 3, input: binary, output: binarySplit },
       { stage: 4, input: [...binarySplit], output: gates },
-      { stage: 5, input: [...gates.flat()], output: blochVisual },
+      {
+        stage: 5, input: [...gates.flat()], output: blochVisual, fidelity: fidelityValue, errorRate: settings.errorRate,  // <-- add this
+        noiseMode: settings.mode
+      },
       { stage: 7, input: blochVisual, output: gatesBack },
       { stage: 8, input: binary2D, output: mergedBinary },
       { stage: 9, input: mergedBinary, output: lettersBack },
       { stage: 10, input: lettersBack, output: mergedText },
-      { stage: 11, input: inputText, output: inputText },
+      { stage: 11, input: mergedText, output: inputText },
     ];
   };
 
   const handleChatComplete = (userInput) => {
-    const data = generateStagesData(userInput);
+    const { errorRate, noiseMode } = settings;
+    const data = generateStagesData(userInput, errorRate, noiseMode);
     setStagesData(data);
     transitionStage(1);
   };
@@ -174,6 +234,11 @@ export default function App() {
     setCircuitView(false);
   };
 
+  const handleSettingsChange = (newSettings) => {
+    console.log(newSettings)
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  };
+
   const isBlochPage = stages[stage] === BlochPage;
   const StageToRender = isBlochPage && circuitView ? Circuit : stages[stage];
 
@@ -182,15 +247,6 @@ export default function App() {
       ref={containerRef}
       className="h-screen w-screen flex flex-col justify-center items-center"
     >
-      {/* Bloch <-> Circuit Toggle */}
-      {isBlochPage && (
-        <button
-          onClick={() => setCircuitView((prev) => !prev)}
-          className="absolute top-5 right-5 px-4 py-2 bg-[#7f00ff] text-white rounded-md shadow-md hover:bg-[#a14cff] transition z-50"
-        >
-          {circuitView ? "Back to Bloch" : "Go to Circuit"}
-        </button>
-      )}
 
       {/* Speed Slider */}
       {stage !== 0 && stage !== stages.length - 1 && (
@@ -273,7 +329,7 @@ export default function App() {
 
       {/* Render Current Stage */}
       {complete ? (
-        <QuantumCompletion decodedMessage={stagesData[0].input} onRestart={handleRestart} />
+        <SuperdenseCompletion encodedMessage={stagesData[0].output} decodedMessage={stagesData[stagesData.length - 1].input} onRestart={handleRestart} stagesData={stagesData} />
       ) : (
         <Context.Provider
           value={{
@@ -281,8 +337,10 @@ export default function App() {
             stagesData,
             speed,
             animate: animateState,
+            settings,
             onComplete: handleOnComplete,
             onChatComplete: handleChatComplete,
+            onSettingsChange: handleSettingsChange,
           }}
         >
           <StageToRender />

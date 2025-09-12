@@ -5,8 +5,10 @@ export const Context = createContext({
   stagesData: null,
   speed: null,
   animate: null,
+  settings: null,
   onComplete: () => { },
   onChatComplete: () => { },
   onAliceInput: () => { },
-  onImageComplete: () => { }
+  onImageComplete: () => { },
+  onSettingsChange: () => { }
 })
