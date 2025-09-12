@@ -248,6 +248,16 @@ export default function App() {
       className="h-screen w-screen flex flex-col justify-center items-center"
     >
 
+      {/* Bloch <-> Circuit Toggle */}
+      {isBlochPage && (
+        <button
+          onClick={() => setCircuitView((prev) => !prev)}
+          className="absolute top-5 right-5 px-4 py-2 bg-[#7f00ff] text-white rounded-md shadow-md hover:bg-[#a14cff] transition z-50"
+        >
+          {circuitView ? "Back to Bloch" : "Go to Circuit"}
+        </button>
+      )}
+
       {/* Speed Slider */}
       {stage !== 0 && stage !== stages.length - 1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white z-50">
