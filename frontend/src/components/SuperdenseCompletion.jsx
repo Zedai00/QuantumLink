@@ -27,8 +27,8 @@ export default function SuperdenseCompletion({ encodedMessage, decodedMessage, o
     { name: "X", count: gates.filter((g) => g === "X").length, color: "#FF49DB" },
     { name: "Z", count: gates.filter((g) => g === "Z").length, color: "#9B5DE5" },
     { name: "XZ", count: gates.filter((g) => g === "XZ").length, color: "#00FFFF" },
-    { name: "Fidelity", count: fidelity * 100, color: "linear-gradient(90deg, #00FFFF, #FF49DB, #9B5DE5)" },
-    { name: "Error Rate", count: errorRate * 100, color: "#F87171" },
+    { name: "Fidelity", count: Number((fidelity * 100).toFixed(1)), color: "#0ff" },
+    { name: "Error Rate", count: Number((errorRate * 100).toFixed(1)), color: "#F87171" },
   ];
 
   useEffect(() => {
