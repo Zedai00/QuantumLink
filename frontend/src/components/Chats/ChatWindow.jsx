@@ -3,6 +3,8 @@ import DynamicAvatar from "./DynamicAvatar";
 import MessageInput from "./MessageInput";
 
 export default function ChatWindow({ startChat, onComplete, input, sender }) {
+
+  console.log("Input: ", input)
   // ✅ Handle sending messages (text or image)
   const handleSendMessage = (message) => {
     if (message.type === "text" && !message.content.trim()) return;
@@ -57,7 +59,7 @@ export default function ChatWindow({ startChat, onComplete, input, sender }) {
               msg={{
                 sender: sender || "Alice",
                 type: input.type || "text",
-                content: input.content || String(input), // fallback if input was string
+                content: input.b64Img || String(input), // fallback if input was string
                 time:
                   input.time ||
                   new Date().toLocaleTimeString([], {

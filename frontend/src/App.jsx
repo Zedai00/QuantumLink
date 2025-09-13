@@ -93,7 +93,6 @@ export default function App() {
 
     // Generate stage snapshots
     const data = generateStagesData(userInput);
-    console.log(data);
     setStagesData(data);
 
     // Start the first transition
@@ -110,7 +109,7 @@ export default function App() {
 
   const handlePrev = () => {
     if (stage <= 0) return;
-    if (stage === 1) setStagesData("");
+    if (stage === 1 && !imgData) setStagesData("");
     transitionStage(stage - 1);
   };
 
@@ -235,132 +234,43 @@ export default function App() {
     );
     const mergedText = lettersBack.join("");
 
-    const { content: data, sender, b64Img } = inputMsg;
+    const { content: data } = inputMsg;
 
     if (inputMsg.type === "text") {
       return [
-        { stage: 0, sender, input: data, output: data }, // AliceChat
-        { stage: 1, sender, input: data, output: letters }, // LetterSplitter
-        { stage: 2, sender, input: letters, output: binary }, // LetterToBinary
-        { stage: 3, sender, input: binary, output: binarySplit }, // BinarySplitter
-        { stage: 4, sender, input: binarySplit, output: gates }, // BinaryToGate
-        { stage: 5, sender, input: gates.flat(), output: blochVisual }, // BlochPage
-        { stage: 6, sender, input: blochVisual, output: gatesBack }, // GateToBinary
-        { stage: 7, sender, input: binary2D, output: mergedBinary }, // BinaryMerger
-        { stage: 8, sender, input: mergedBinary, output: lettersBack }, // BinaryToLetter
-        { stage: 9, sender, input: lettersBack, output: mergedText }, // LetterMerger
-        { stage: 10, sender, input: data, output: data }, // BobChat
+        { stage: 0, input: inputMsg, output: data }, // AliceChat
+        { stage: 1, input: data, output: letters }, // LetterSplitter
+        { stage: 2, input: letters, output: binary }, // LetterToBinary
+        { stage: 3, input: binary, output: binarySplit }, // BinarySplitter
+        { stage: 4, input: binarySplit, output: gates }, // BinaryToGate
+        { stage: 5, input: gates.flat(), output: blochVisual }, // BlochPage
+        { stage: 6, input: blochVisual, output: gatesBack }, // GateToBinary
+        { stage: 7, input: binary2D, output: mergedBinary }, // BinaryMerger
+        { stage: 8, input: mergedBinary, output: lettersBack }, // BinaryToLetter
+        { stage: 9, input: lettersBack, output: mergedText }, // LetterMerger
+        { stage: 10, input: data, output: data }, // BobChat
       ];
     }
 
     if (inputMsg.type === "image") {
       return [
         // { stage: 0, sender, input: data, output: data }, // AliceChat
-        { stage: 0, sender, input: b64Img, output: data }, // AliceChat
-        { stage: 1, sender, input: data, output: pixelBinary }, // ImageResizerPixelExtractor / PixelToBinary
-        { stage: 2, sender, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
-        { stage: 3, sender, input: gates.flat(), output: blochVisual }, // BlochPage
-        { stage: 4, sender, input: blochVisual, output: gatesBack }, // GateToBinary
-        { stage: 5, sender, input: gatesBack, output: binary2D }, // BinaryMerger
-        { stage: 6, sender, input: binary2D, output: data }, // BinaryToPixel
-        { stage: 7, sender, input: data, output: data }, // ImageReconstructor / BobChat
+        { stage: 0, input: inputMsg, output: data }, // AliceChat
+        { stage: 1, input: data, output: pixelBinary }, // ImageResizerPixelExtractor / PixelToBinary
+        { stage: 2, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
+        { stage: 3, input: gates.flat(), output: blochVisual }, // BlochPage
+        { stage: 4, input: blochVisual, output: gatesBack }, // GateToBinary
+        { stage: 5, input: gatesBack, output: binary2D }, // BinaryMerger
+        { stage: 6, input: binary2D, output: data }, // BinaryToPixel
+        { stage: 7, input: data, output: data }, // ImageReconstructor / BobChat
       ];
     }
   };
 
-  // const generateStagesData = (inputMsg) => {
-  //   let binary = [];
-  //   let letters = [];
-  //   let binarySplit = [];
-  //   if (inputMsg.type === "text") {
-  //     letters = inputMsg.content.split("");
-  //     binary = letters.map((l) => l.charCodeAt(0).toString(2).padStart(8, "0"));
-
-  //     binarySplit = binary.map((item) =>
-  //       item.split("").reduce((acc, char, index) => {
-  //         if (index % 2 === 0) acc.push("");
-  //         acc[acc.length - 1] += char;
-  //         return acc;
-  //       }, [])
-  //     );
-  //   }
-
-  //   if (inputMsg.type === "image") {
-  //     binarySplit = inputMsg.content;
-  //   }
-
-  //   console.log(binarySplit);
-
-  //   const gates = [...binarySplit].map((item) =>
-  //     item.map((letter) => {
-  //       switch (letter) {
-  //         case "00":
-  //           return "I";
-  //         case "01":
-  //           return "X";
-  //         case "10":
-  //           return "Z";
-  //         case "11":
-  //           return "XZ";
-  //         default:
-  //           return "I";
-  //       }
-  //     })
-  //   );
-
-  //   const blochVisual = [...gates.flat()];
-  //   const gatesBack = blochVisual.map((item) => {
-  //     switch (item) {
-  //       case "I":
-  //         return "00";
-  //       case "X":
-  //         return "01";
-  //       case "Z":
-  //         return "10";
-  //       case "XZ":
-  //         return "11";
-  //       default:
-  //         return "00";
-  //     }
-  //   });
-
-  //   const chunkSize = 4;
-  //   const binary2D = [];
-  //   for (let i = 0; i < gatesBack.length; i += chunkSize) {
-  //     binary2D.push(gatesBack.slice(i, i + chunkSize));
-  //   }
-  //   const mergedBinary = [...binary2D].map((group) => group.join(""));
-  //   const lettersBack = [...mergedBinary].map((binaryStr) =>
-  //     String.fromCharCode(parseInt(binaryStr, 2))
-  //   );
-  //   const mergedText = lettersBack.join("");
-
-  //   const { content: data, sender } = inputMsg;
-
-  //   return [
-  //     { stage: 0, sender, input: data, output: data },
-  //     { stage: 1, sender, input: data, output: letters },
-  //     { stage: 2, sender, input: letters, output: binary },
-  //     { stage: 3, sender, input: binary, output: binarySplit },
-  //     { stage: 4, sender, input: [...binarySplit], output: gates },
-  //     { stage: 5, sender, input: [...gates.flat()], output: blochVisual },
-  //     { stage: 7, sender, input: blochVisual, output: gatesBack },
-  //     { stage: 8, sender, input: binary2D, output: mergedBinary },
-  //     { stage: 9, sender, input: mergedBinary, output: lettersBack },
-  //     { stage: 10, sender, input: lettersBack, output: mergedText },
-  //     { stage: 11, sender, input: data, output: data },
-  //   ];
-  // };
-
-  // const handleChatComplete = (userInput) => {
-  //   const data = generateStagesData(userInput);
-  //   setStagesData(data);
-  //   transitionStage(1);
-  // };
 
   const handleRestart = () => {
     setComplete(false);
-    setStagesData("");
+    setStagesData([]);
     setStage(0);
     setCircuitView(false);
   };
@@ -368,14 +278,6 @@ export default function App() {
   const isBlochPage = stages[stage] === BlochPage;
   const StageToRender = isBlochPage && circuitView ? Circuit : stages[stage];
 
-  console.log(
-    "StageToRender:",
-    StageToRender,
-    "stage:",
-    stage,
-    "stages array:",
-    stages
-  );
 
   return (
     <div
@@ -480,7 +382,13 @@ export default function App() {
       {/* Render Current Stage */}
       {complete ? (
         <QuantumCompletion
-          decodedMessage={stagesData[0].input}
+          decodedMessage={
+            !imgData ? (
+              stagesData[0].input.content
+            ) : (
+              <img src={stagesData[0].input.b64Img} width={100} height={100} />
+            )
+          }
           onRestart={handleRestart}
         />
       ) : (

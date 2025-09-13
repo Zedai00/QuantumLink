@@ -5,7 +5,7 @@ import SideBar from "./SideBar";
 import { Context } from "../Context/Context";
 
 export default function Chat() {
-  const { stagesData, stage, onChatComplete, onImageComplete } =
+  const { stagesData, stage, onChatComplete, onImageComplete, imgData } =
     useContext(Context);
   return (
     <div className="w-screen h-full mb-13">

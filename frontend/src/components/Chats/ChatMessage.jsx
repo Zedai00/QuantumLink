@@ -2,6 +2,7 @@ import { Check, CheckCheck } from "lucide-react";
 import DynamicAvatar from "./DynamicAvatar";
 
 export default function ChatMessage({ msg }) {
+  console.log("Img: ", msg.b64Img)
   const isMe = msg.sender === "Alice";
 
   return (
@@ -26,6 +27,8 @@ export default function ChatMessage({ msg }) {
           <img
             src={msg.content}
             alt="Sent"
+            width={150}
+            height={150}
             className="rounded-lg mb-2 max-w-full shadow-[0_0_10px_rgba(0,255,255,0.3)]"
           />
         ) : (

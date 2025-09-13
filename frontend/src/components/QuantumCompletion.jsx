@@ -4,6 +4,8 @@ import { animate, utils } from "animejs";
 export default function SuperdenseCompletion({ decodedMessage, onRestart }) {
   const containerRef = useRef(null);
 
+  console.log(decodedMessage)
+
   useEffect(() => {
     const container = containerRef.current;
 
