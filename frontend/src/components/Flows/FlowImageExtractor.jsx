@@ -15,7 +15,6 @@ export default function FlowImageExtractor({ input, output }) {
   const [targets, setTargets] = useState([]); // array of {x,y} relative to container
   const [cellSize, setCellSize] = useState(6); // in px (will compute)
   const [gridCols, setGridCols] = useState(32);
-  const [gridVisible, setGridVisible] = useState(false);
   const [layoutReady, setLayoutReady] = useState(false);
 
   // normalize output to array of [r,g,b]
@@ -35,10 +34,8 @@ export default function FlowImageExtractor({ input, output }) {
 
   // pixel colors (scale if tiny values like 0..3)
   const pixelColors = pixelsArr.map(([r, g, b]) => {
-    // If values seem 0..3, scale to 0..255
     return `rgb(${r * 85}, ${g * 85}, ${b * 85})`;
   
-    // return `rgb(${r}, ${g}, ${b})`;
   });
 
   // Only animate first N pixels for performance (you can tweak)
@@ -120,7 +117,6 @@ export default function FlowImageExtractor({ input, output }) {
     // reveal static grid only after last pixel arrives
     const totalTime =
       originalMoveDuration + animateCount * stagger + flightDuration + finalBuffer; // seconds
-    const revealTimer = setTimeout(() => setGridVisible(true), (originalMoveDuration + animateCount * stagger + flightDuration) * 1000);
 
     // call onComplete after everything
     const completeTimer = setTimeout(() => {
@@ -128,7 +124,6 @@ export default function FlowImageExtractor({ input, output }) {
     }, totalTime * 1000 + 50);
 
     return () => {
-      clearTimeout(revealTimer);
       clearTimeout(completeTimer);
     };
   }, [layoutReady, startPoint, targets, animateCount, onComplete]);

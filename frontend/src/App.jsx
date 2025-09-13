@@ -18,6 +18,7 @@ import BinaryToPixel from "./components/Convertors/BinaryToPixel";
 import AliceChat from "./components/Chats/AliceChat";
 import BobChat from "./components/Chats/BobChat";
 import Circuit from "./components/Convertors/Circuit";
+import PixelToRGB from "./components/Convertors/PixelToRGB";
 
 export default function App() {
   const [stage, setStage] = useState(0);
@@ -47,6 +48,9 @@ export default function App() {
   const imageStages = [
     AliceChat,
     ImageResizerPixelExtractor,
+
+    PixelToRGB,
+    
     PixelToBinary,
     BinaryToGate,
     BlochPage,
@@ -177,10 +181,10 @@ export default function App() {
         rgbGrid.push(rgbPixels.slice(i, i + width));
       }
 
-      stagesData["ImageExtractor"] = {
-        input: rgbGrid, // left canvas can draw
-        output: binarySplit, // right grid shows binary
-      };
+      // stagesData["ImageExtractor"] = {
+      //   input: rgbGrid, // left canvas can draw
+      //   output: binarySplit, // right grid shows binary
+      // };
 
       pixelBinary = [...binarySplit]; // for later stages
     }
@@ -256,13 +260,14 @@ export default function App() {
       return [
         // { stage: 0, sender, input: data, output: data }, // AliceChat
         { stage: 0, input: inputMsg, output: data }, // AliceChat
-        { stage: 1, input: data, output: pixelBinary }, // ImageResizerPixelExtractor / PixelToBinary
-        { stage: 2, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
-        { stage: 3, input: gates.flat(), output: blochVisual }, // BlochPage
-        { stage: 4, input: blochVisual, output: gatesBack }, // GateToBinary
-        { stage: 5, input: gatesBack, output: binary2D }, // BinaryMerger
-        { stage: 6, input: binary2D, output: data }, // BinaryToPixel
-        { stage: 7, input: data, output: data }, // ImageReconstructor / BobChat
+        { stage: 1, input: data, output: pixelBinary }, // ImageResizerPixelExtractor 
+        { stage: 2, input: pixelBinary, output: " .... " }, // PixelToRGB -> PixelToBinary
+        { stage: 3, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
+        { stage: 4, input: gates.flat(), output: blochVisual }, // BlochPage
+        { stage: 5, input: blochVisual, output: gatesBack }, // GateToBinary
+        { stage: 6, input: gatesBack, output: binary2D }, // BinaryMerger
+        { stage: 7, input: binary2D, output: data }, // BinaryToPixel
+        { stage: 8, input: data, output: data }, // ImageReconstructor / BobChat
       ];
     }
   };
