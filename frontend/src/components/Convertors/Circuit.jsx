@@ -15,37 +15,240 @@ export default function Circuit() {
   const root = useRef(null)
   const tlRef = useRef(null)
 
+  const CNOT_LaTeX =
+    "\\text{CNOT: } |0\\rangle|b\\rangle \\to |0\\rangle|b\\rangle, \\quad |1\\rangle|b\\rangle \\to |1\\rangle|b \\oplus 1\\rangle";
+
+  const H_2x2_LaTeX =
+    "\\begin{bmatrix}\\tfrac{1}{\\sqrt{2}} & \\tfrac{1}{\\sqrt{2}} \\\\ \\tfrac{1}{\\sqrt{2}} & -\\tfrac{1}{\\sqrt{2}}\\end{bmatrix}";
+
+  // produce derivations with explicit matrix multiplication for each encoding
   function getSuperdenseOutputs(inputGate) {
-    const outputs = [];
-    outputs.push("|00\\rangle");
-    outputs.push("\\frac{|00\\rangle + |10\\rangle}{\\sqrt{2}}");
-    outputs.push("\\frac{|00\\rangle + |11\\rangle}{\\sqrt{2}}");
+    // reusable pieces
+    const initial =
+      "\\textbf{Step 0: Initial} \\\\[1em] " +
+      "|0\\rangle = \\begin{bmatrix}1\\\\0\\end{bmatrix}, \\quad " +
+      "|0\\rangle = \\begin{bmatrix}1\\\\0\\end{bmatrix} \\ " +
+      "\\Rightarrow |0\\rangle_A |0\\rangle_B = |0\\rangle \\otimes |0\\rangle \\ " +
+      "= \\begin{bmatrix}1\\\\0\\end{bmatrix} \\otimes \\begin{bmatrix}1\\\\0\\end{bmatrix} = |00\\rangle = |\\Psi{0}\\rangle"
+
+    const hadamard = `
+\\textbf{Step 1: Alice applies  H on }|\\Psi{0}\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& H = ${H_2x2_LaTeX} 
+&\\quad &\\begin{aligned}
+H|\\Psi{1}\\rangle = H|00\\rangle &= H|0\\rangle \\otimes |0\\rangle = (H|0\\rangle) \\otimes |0\\rangle \\\\
+&= (\\tfrac{1}{\\sqrt{2}}(|0\\rangle+|1\\rangle)) \\otimes |0\\rangle \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|0\\rangle\\otimes|0\\rangle + |1\\rangle\\otimes|0\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|00\\rangle + |10\\rangle) = |\\Psi{1}\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+
+    const bell =
+      "\\textbf{Step 2: Alice applies CNOT on } \\Psi{1} \\\\[1em]" +
+      CNOT_LaTeX + " \\\\[0.75em]" +
+      "\\Psi{2} \\Rightarrow \\tfrac{1}{\\sqrt{2}}(|00\\rangle + |10\\rangle) \\xrightarrow{\\text{CNOT}} " +
+      "\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle) = \\Psi{2} ";
+
+
+    const derivs = []
+
+    // base steps
+    derivs.push(initial)
+    derivs.push(hadamard)
+    derivs.push(bell)
+
+    // then per inputGate show explicit arithmetic
     switch (inputGate) {
-      case "I": outputs.push("\\frac{|00\\rangle + |11\\rangle}{\\sqrt{2}}"); break;
-      case "X": outputs.push("\\frac{|10\\rangle + |01\\rangle}{\\sqrt{2}}"); break;
-      case "Z": outputs.push("\\frac{|00\\rangle - |11\\rangle}{\\sqrt{2}}"); break;
-      case "XZ": outputs.push("\\frac{|10\\rangle - |01\\rangle}{\\sqrt{2}}"); break;
+      case "I": {
+        const I_gate_step = `
+\\textbf{Step 3: Alice applies I on }|\\Psi_2\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& I = \\begin{bmatrix}1 & 0 \\\\ 0 & 1\\end{bmatrix} 
+&\\quad &\\begin{aligned}
+I|\\Psi_2\\rangle &= I\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)\\right) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(I|0\\rangle \\otimes |0\\rangle + I|1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|0\\rangle \\otimes |0\\rangle + |1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle) = |\\Psi_3\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+        const cnot =
+          "\\textbf{Step 4: Bob applies CNOT on } \\Psi{3} \\\\[1em]" +
+          CNOT_LaTeX + " \\\\[0.75em]" +
+          "\\Psi{3} \\Rightarrow \\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle) \\xrightarrow{\\text{CNOT}} " +
+          "\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |10\\rangle) = \\Psi{4} ";
+
+
+        const h_bob = `
+\\textbf{Step 3: Bob applies H on }|\\Psi_4\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& H = ${H_2x2_LaTeX}
+&\\quad &\\begin{aligned}
+H|\\Psi_4\\rangle &= H\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |10\\rangle)\\right) \\
+= \\tfrac{1}{\\sqrt{2}}(H|0\\rangle \\otimes |0\\rangle + H|1\\rangle \\otimes |0\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(\\tfrac{1}{\\sqrt{2}}(|0\\rangle + |1\\rangle) \\otimes |0\\rangle + (\\tfrac{1}{\\sqrt{2}}(|0\\rangle - |1\\rangle) \\otimes |0\\rangle) \\\\
+&= \\tfrac{1}{2}(|00\\rangle + |10\\rangle + |00\\rangle - |10\\rangle) \\
+= |00\\rangle =  |\\Psi_5\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+
+        const result = "\\textbf{Step 4: Bob Measures } \\Psi_5 \\\\[1em] |\\Psi_5\\rangle = |00\\rangle \\xrightarrow{\\text{Measurement}} 00 "
+
+        derivs.push(I_gate_step)
+        derivs.push(cnot)
+        derivs.push(h_bob)
+        derivs.push(result)
+        break
+      }
+
+      case "X": {
+        const X_gate_step = `
+\\textbf{Step 3: Alice applies X on }|\\Psi_2\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& X = \\begin{bmatrix}0 & 1 \\\\ 1 & 0\\end{bmatrix} 
+&\\quad &\\begin{aligned}
+X|\\Psi_2\\rangle &= X\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)\\right) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(X|0\\rangle \\otimes |0\\rangle + X|1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|1\\rangle \\otimes |0\\rangle + |0\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|10\\rangle + |01\\rangle) = |\\Psi_3\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+        const cnot =
+          "\\textbf{Step 4: Bob applies CNOT on } \\Psi{3} \\\\[1em]" +
+          CNOT_LaTeX + " \\\\[0.75em]" +
+          "\\Psi{3} \\Rightarrow \\tfrac{1}{\\sqrt{2}}(|10\\rangle + |01\\rangle) \\xrightarrow{\\text{CNOT}} " +
+          "\\tfrac{1}{\\sqrt{2}}(|11\\rangle + |01\\rangle) = \\Psi{4} ";
+
+
+        const h_bob = `
+\\textbf{Step 3: Bob applies H on }|\\Psi_4\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& H = ${H_2x2_LaTeX}
+&\\quad &\\begin{aligned}
+H|\\Psi_4\\rangle &= H\\left(\\tfrac{1}{\\sqrt{2}}(|11\\rangle + |01\\rangle)\\right) \\
+= \\tfrac{1}{\\sqrt{2}}(H|1\\rangle \\otimes |1\\rangle + H|0\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(\\tfrac{1}{\\sqrt{2}}(|0\\rangle - |1\\rangle) \\otimes |1\\rangle + (\\tfrac{1}{\\sqrt{2}}(|0\\rangle + |1\\rangle) \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{2}(|01\\rangle - |11\\rangle + |01\\rangle + |11\\rangle) \\
+= |01\\rangle =  |\\Psi_5\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+
+        const result = "\\textbf{Step 4: Bob Measures } \\Psi_5 \\\\[1em] |\\Psi_5\\rangle = |01\\rangle \\xrightarrow{\\text{Measurement}} 01 "
+
+        derivs.push(X_gate_step)
+        derivs.push(cnot)
+        derivs.push(h_bob)
+        derivs.push(result)
+        break
+      }
+
+      case "Z": {
+        const Z_gate_step = `
+\\textbf{Step 3: Alice applies Z on }|\\Psi_2\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& Z = \\begin{bmatrix}1 & 0 \\\\ 0 & -1\\end{bmatrix} 
+&\\quad &\\begin{aligned}
+Z|\\Psi_2\\rangle &= Z\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)\\right) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(Z|0\\rangle \\otimes |0\\rangle + Z|1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|0\\rangle \\otimes |0\\rangle - |1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|00\\rangle - |11\\rangle) = |\\Psi_3\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+        const cnot =
+          "\\textbf{Step 4: Bob applies CNOT on } \\Psi{3} \\\\[1em]" +
+          CNOT_LaTeX + " \\\\[0.75em]" +
+          "\\Psi{3} \\Rightarrow \\tfrac{1}{\\sqrt{2}}(|00\\rangle - |11\\rangle) \\xrightarrow{\\text{CNOT}} " +
+          "\\tfrac{1}{\\sqrt{2}}(|00\\rangle - |10\\rangle) = \\Psi{4} ";
+
+
+        const h_bob = `
+\\textbf{Step 3: Bob applies H on }|\\Psi_4\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& H = ${H_2x2_LaTeX}
+&\\quad &\\begin{aligned}
+H|\\Psi_4\\rangle &= H\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle - |10\\rangle)\\right) \\
+= \\tfrac{1}{\\sqrt{2}}(H|0\\rangle \\otimes |0\\rangle - H|1\\rangle \\otimes |0\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(\\tfrac{1}{\\sqrt{2}}(|0\\rangle + |1\\rangle) \\otimes |0\\rangle - (\\tfrac{1}{\\sqrt{2}}(|0\\rangle - |1\\rangle) \\otimes |0\\rangle) \\\\
+&= \\tfrac{1}{2}(|00\\rangle + |10\\rangle - |00\\rangle + |10\\rangle) \\
+= |10\\rangle =  |\\Psi_5\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+
+        const result = "\\textbf{Step 4: Bob Measures } \\Psi_5 \\\\[1em] |\\Psi_5\\rangle = |10\\rangle \\xrightarrow{\\text{Measurement}} 10 "
+
+        derivs.push(Z_gate_step)
+        derivs.push(cnot)
+        derivs.push(h_bob)
+        derivs.push(result)
+        break
+      }
+
+      case "XZ": {
+        const XZ_gate_step = `
+\\textbf{Step 3: Alice applies XZ on }|\\Psi_2\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& XZ = \\begin{bmatrix}0 & -1 \\\\ 1 & 0\\end{bmatrix} 
+&\\quad &\\begin{aligned}
+XZ|\\Psi_2\\rangle &= XZ\\left(\\tfrac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)\\right) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(XZ|0\\rangle \\otimes |0\\rangle + XZ|1\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|1\\rangle \\otimes |0\\rangle - |0\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(|10\\rangle - |01\\rangle) = |\\Psi_3\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+        const cnot =
+          "\\textbf{Step 4: Bob applies CNOT on } \\Psi{3} \\\\[1em]" +
+          CNOT_LaTeX + " \\\\[0.75em]" +
+          "\\Psi{3} \\Rightarrow \\tfrac{1}{\\sqrt{2}}(|10\\rangle - |01\\rangle) \\xrightarrow{\\text{CNOT}} " +
+          "\\tfrac{1}{\\sqrt{2}}(|11\\rangle - |01\\rangle) = \\Psi{4} ";
+
+
+        const h_bob = `
+\\textbf{Step 3: Bob applies H on }|\\Psi_4\\rangle \\\\[1em]
+
+\\begin{alignedat}{2}
+& H = ${H_2x2_LaTeX}
+&\\quad &\\begin{aligned}
+H|\\Psi_4\\rangle &= H\\left(\\tfrac{1}{\\sqrt{2}}(|11\\rangle - |01\\rangle)\\right) \\
+= \\tfrac{1}{\\sqrt{2}}(H|1\\rangle \\otimes |1\\rangle - H|0\\rangle \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{\\sqrt{2}}(\\tfrac{1}{\\sqrt{2}}(|0\\rangle - |1\\rangle) \\otimes |1\\rangle - (\\tfrac{1}{\\sqrt{2}}(|0\\rangle + |1\\rangle) \\otimes |1\\rangle) \\\\
+&= \\tfrac{1}{2}(|01\\rangle - |11\\rangle - |01\\rangle - |11\\rangle) \\
+= -|11\\rangle =  |\\Psi_5\\rangle
+\\end{aligned}
+\\end{alignedat}
+`;
+
+        const result = "\\textbf{Step 4: Bob Measures } \\Psi_5 \\\\[1em] |\\Psi_5\\rangle = -|11\\rangle \\xrightarrow{\\text{Measurement}} 11 "
+
+        derivs.push(XZ_gate_step)
+        derivs.push(cnot)
+        derivs.push(h_bob)
+        derivs.push(result)
+        break
+      }
+
+      default: {
+        derivs.push("\\text{Unknown encoding}")
+      }
     }
-    switch (inputGate) {
-      case "I": outputs.push("\\frac{|00\\rangle + |10\\rangle}{\\sqrt{2}}"); break;
-      case "X": outputs.push("\\frac{|11\\rangle + |01\\rangle}{\\sqrt{2}}"); break;
-      case "Z": outputs.push("\\frac{|00\\rangle - |10\\rangle}{\\sqrt{2}}"); break;
-      case "XZ": outputs.push("\\frac{|11\\rangle - |01\\rangle}{\\sqrt{2}}"); break;
-    }
-    switch (inputGate) {
-      case "I": outputs.push("|00\\rangle"); break;
-      case "X": outputs.push("|01\\rangle"); break;
-      case "Z": outputs.push("|10\\rangle"); break;
-      case "XZ": outputs.push("|11\\rangle"); break;
-    }
-    switch (inputGate) {
-      case "I": outputs.push("00"); break;
-      case "X": outputs.push("01"); break;
-      case "Z": outputs.push("10"); break;
-      case "XZ": outputs.push("11"); break;
-    }
-    return outputs;
+
+    return derivs
   }
+
 
   useEffect(() => {
     const dynamicElements = [];
@@ -140,6 +343,9 @@ export default function Circuit() {
             duration: 0,
             onComplete: () => {
               qubits.forEach(q => q.remove());
+              if (idx === alicePaths.length - 1 && i === input.length - 1) {
+                onComplete()
+              }
             }
           });
         }
@@ -172,7 +378,7 @@ export default function Circuit() {
         <svg width={width} height="600" viewBox={`0 0 ${width} 600`}>
           <path id="alice1" d={`M 0 0 l ${width * 0.15} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
           <path id="alice2" d={`M ${width * 0.15} 0 l ${width * 0.15} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
-          <path id="alice3" d={`M ${width * 0.31} 0 l ${width * 0.17} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
+          <path id="alice3" d={`M ${width * 0.30} 0 l ${width * 0.17} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
           <path id="alice4" d={`M ${width * 0.48} 0 l ${width * 0.15} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
           <path id="alice5" d={`M ${width * 0.6} 0 l ${width * 0.15} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
           <path id="alice6" d={`M ${width * 0.75} 0 l ${width * 0.15} 0`} fill="none" stroke="#00ffff" strokeWidth="2" />
@@ -185,7 +391,7 @@ export default function Circuit() {
         <svg width={width} height="600" viewBox={`0 0 ${width} 600`}>
           <path id="bob1" d={`M 0 0 l ${width * 0.15} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
           <path id="bob2" d={`M ${width * 0.15} 0 l ${width * 0.15} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
-          <path id="bob3" d={`M ${width * 0.31} 0 l ${width * 0.17} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
+          <path id="bob3" d={`M ${width * 0.30} 0 l ${width * 0.17} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
           <path id="bob4" d={`M ${width * 0.48} 0 l ${width * 0.15} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
           <path id="bob5" d={`M ${width * 0.6} 0 l ${width * 0.15} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
           <path id="bob6" d={`M ${width * 0.75} 0 l ${width * 0.15} 0`} fill="none" stroke="#ff00ff" strokeWidth="2" />
@@ -193,7 +399,9 @@ export default function Circuit() {
         </svg>
       </div>
 
-      <div id="outp" className="absolute top-[60%] left-146 bg-[#1f1f2e] text-[#00ffff] rounded-md shadow-[0_0_12px_#00ffff] flex justify-center items-center text-xl font-bold size-40"></div>
+      <div className="absolute bg-[#ff00ff] h-[1px] w-full top-1/2"></div>
+
+      <div id="outp" className="absolute top-[57%] left-20 bg-[#1f1f2e] text-[#00ffff] rounded-md shadow-[0_0_12px_#00ffff] flex justify-center items-center text-l font-bold h-50 w-[80%]"></div>
 
       {/* Input path visible */}
       <div className="absolute left-1/2 top-0">
@@ -213,7 +421,7 @@ export default function Circuit() {
       <div className="absolute top-[calc(50%-1.8rem)] z-1 left-210 size-15 flex justify-center items-center bg-[#7f00ff] text-white rounded-[50%] shadow-[0_0_10px_#7f00ff]">X</div>
       <div className="absolute top-[calc(33.33%-1.8rem)] left-252 z-1 size-15 flex justify-center items-center bg-[#ffaa00] text-black rounded-md shadow-[0_0_10px_#ffaa00]">H</div>
       <div className="absolute top-[calc(33.33%-1.8rem)] z-1 left-305 size-15 flex justify-center items-center bg-[#00ff85] text-black rounded-md shadow-[0_0_10px_#00ff85]">O</div>
-      <div className="absolute top-[calc(50%-1.2rem)] z-1 left-305 size-15 flex justify-center items-center bg-[#00ff85] text-black rounded-md shadow-[0_0_10px_#00ff85]">O</div>
+      <div className="absolute top-[calc(50%-1.8rem)] z-1 left-305 size-15 flex justify-center items-center bg-[#00ff85] text-black rounded-md shadow-[0_0_10px_#00ff85]">O</div>
 
       <div className="absolute bg-[#0a0a1a] size-20 top-0 left-0 z-10"></div>
     </div>

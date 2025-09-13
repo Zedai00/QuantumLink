@@ -19,16 +19,16 @@ export default function SuperdenseCompletion({ encodedMessage, decodedMessage, o
   const gates = lastStage.output || [];
   const fidelity = lastStage.fidelity || 0;
   const errorRate = lastStage.errorRate || 0;
-  const noiseMode = lastStage.noiseMode || "ideal";
 
   // Prepare chart data
+  // Prepare chart data
   const chartData = [
-    { name: "I", count: gates.filter((g) => g === "I").length, color: "#00FFFF" },
-    { name: "X", count: gates.filter((g) => g === "X").length, color: "#FF49DB" },
-    { name: "Z", count: gates.filter((g) => g === "Z").length, color: "#9B5DE5" },
-    { name: "XZ", count: gates.filter((g) => g === "XZ").length, color: "#00FFFF" },
-    { name: "Fidelity", count: Number((fidelity * 100).toFixed(1)), color: "#0ff" },
-    { name: "Error Rate", count: Number((errorRate * 100).toFixed(1)), color: "#F87171" },
+    { name: "I", count: gates.filter((g) => g === "I").length, display: gates.filter((g) => g === "I").length, color: "#00FFFF" },
+    { name: "X", count: gates.filter((g) => g === "X").length, display: gates.filter((g) => g === "X").length, color: "#FF49DB" },
+    { name: "Z", count: gates.filter((g) => g === "Z").length, display: gates.filter((g) => g === "Z").length, color: "#9B5DE5" },
+    { name: "XZ", count: gates.filter((g) => g === "XZ").length, display: gates.filter((g) => g === "XZ").length, color: "#00FFFF" },
+    { name: "Fidelity", count: fidelity * 100, display: `${(fidelity * 100).toFixed(1)}%`, color: "#0ff" },
+    { name: "Error Rate", count: errorRate * 100, display: `${(errorRate * 100).toFixed(1)}%`, color: "#F87171" },
   ];
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export default function SuperdenseCompletion({ encodedMessage, decodedMessage, o
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
-              <LabelList dataKey="count" position="top" fill="#fff" formatter={(val) => `${val.toFixed(1)}%`} />
+              <LabelList dataKey="display" position="top" fill="#fff" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
