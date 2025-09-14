@@ -11,7 +11,7 @@ import BinaryMerger from "./components/Convertors/BinaryMerger";
 import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import ImageResizerPixelExtractor from "./components/Convertors/ImageResizerPixelExtractor";
 import LetterMerger from "./components/Convertors/LetterMerger";
-import PixelToBinary from "./components/Convertors/PixelToBinary";
+import RGBToBinary from "./components/Convertors/RGBToBinary";
 import QuantumCompletion from "./components/QuantumCompletion";
 import PixelsToImage from "./components/Convertors/ImageReconstructor";
 import BinaryToPixel from "./components/Convertors/BinaryToPixel";
@@ -24,7 +24,7 @@ export default function App() {
   const [stage, setStage] = useState(0);
   const [stages, setStages] = useState([AliceChat]);
   const [imgData, setImgData] = useState();
-  const [rgbValues, setRGBValues] = useState([]);
+  const [imgDim, setImgDim] = useState({});
   const [complete, setComplete] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [animateState, setAnimateState] = useState(true);
@@ -49,10 +49,10 @@ export default function App() {
   const imageStages = [
     AliceChat,
     ImageResizerPixelExtractor,
-
     PixelToRGB,
-    
-    PixelToBinary,
+
+    RGBToBinary,
+
     BinaryToGate,
     BlochPage,
     GateToBinary,
@@ -131,7 +131,7 @@ export default function App() {
     let binarySplit = [];
     let letters = [];
     let binary = [];
-    let pixels = [];
+    let rgbPixels = [];
     let pixelBinary = [];
 
     if (inputMsg.type === "text") {
@@ -150,12 +150,11 @@ export default function App() {
     }
 
     if (inputMsg.type === "image") {
-      const b64Img = inputMsg.b64Img;
-      const pixels = inputMsg.content; // raw Uint8ClampedArray
-      let binarySplit = [];
-      let rgbPixels = [];
+      const { b64Img, content: pixels, width, height } = inputMsg;
+
 
       setImgData(b64Img);
+      setImgDim({ width, height });
 
       for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
@@ -176,16 +175,47 @@ export default function App() {
       }
 
       // flatten to 2D grid for FlowImageExtractor (instead of 1 long row)
-      const width = Math.sqrt(rgbPixels.length); // if square resized
-      const rgbGrid = [];
-      for (let i = 0; i < rgbPixels.length; i += width) {
-        rgbGrid.push(rgbPixels.slice(i, i + width));
-      }
-
-
+      // const width = Math.sqrt(rgbPixels.length); // if square resized
+      // const rgbGrid = [];
+      // for (let i = 0; i < rgbPixels.length; i += width) {
+      //   rgbGrid.push(rgbPixels.slice(i, i + width));
+      // }
 
       pixelBinary = [...binarySplit]; // for later stages
     }
+
+    // normalize pixels into RGB
+    const pixelsArr = (() => {
+      const arr = [];
+      for (let i = 0; i < pixelBinary.length; i += 4) {
+        arr.push([pixelBinary[i], pixelBinary[i + 1], pixelBinary[i + 2]]);
+      }
+      return arr;
+    })();
+
+    const rgbValues = pixelsArr.flatMap((arr) => {
+      return arr
+        .map((v) => parseInt(v, 2) || 0)
+        .reduce((colors, val, i, src) => {
+          if (i % 3 === 0) {
+            const r = src[i] * 85;
+            const g = src[i + 1] * 85;
+            const b = src[i + 2] * 85;
+            colors.push(`rgb(${r}, ${g}, ${b})`);
+          }
+          return colors;
+        }, []);
+    });
+
+    console.log("pixelsArr sample:", pixelsArr.slice(0, 5));
+
+    // map to RGB colors
+    // const rgbValues = pixelsArr.map(([r, g, b]) => {
+    //   const R = Math.min(r * 85, 255);
+    //   const G = Math.min(g * 85, 255);
+    //   const B = Math.min(b * 85, 255);
+    //   return `rgb(${R}, ${G}, ${B})`;
+    // });
 
     // Convert binary/pixels to quantum gates
     const gates = binarySplit.map((row) =>
@@ -258,18 +288,20 @@ export default function App() {
       return [
         // { stage: 0, sender, input: data, output: data }, // AliceChat
         { stage: 0, input: inputMsg, output: data }, // AliceChat
-        { stage: 1, input: data, output: pixelBinary }, // ImageResizerPixelExtractor 
-        { stage: 2, input: pixelBinary, output: rgbValues }, // PixelToRGB -> PixelToBinary
-        { stage: 3, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
-        { stage: 4, input: gates.flat(), output: blochVisual }, // BlochPage
-        { stage: 5, input: blochVisual, output: gatesBack }, // GateToBinary
-        { stage: 6, input: gatesBack, output: binary2D }, // BinaryMerger
-        { stage: 7, input: binary2D, output: data }, // BinaryToPixel
-        { stage: 8, input: data, output: data }, // ImageReconstructor / BobChat
+        { stage: 1, input: data, output: rgbPixels }, // ImageResizerPixelExtractor
+        { stage: 2, input: rgbPixels, output: rgbValues }, // PixelToRGB
+        { stage: 3, input: rgbValues, output: binary }, // PixelToBinary
+        { stage: 4, input: binary, output: binarySplit }, // BinarySplitter
+        { stage: 5, input: binarySplit, output: gates }, // BinaryToGate
+        { stage: 6, input: gates.flat(), output: blochVisual }, // BlochPage
+        { stage: 7, input: blochVisual, output: gatesBack }, // GateToBinary
+
+        { stage: 8, input: gatesBack, output: binary2D }, // BinaryMerger
+        { stage: 9, input: binary2D, output: data }, // BinaryToPixel
+        { stage: 10, input: data, output: data }, // ImageReconstructor / BobChat
       ];
     }
   };
-
 
   const handleRestart = () => {
     setComplete(false);
@@ -278,13 +310,8 @@ export default function App() {
     setCircuitView(false);
   };
 
-  const handleRGBValues = (rgb) => {
-    setRGBValues(rgb)
-  }
-
   const isBlochPage = stages[stage] === BlochPage;
   const StageToRender = isBlochPage && circuitView ? Circuit : stages[stage];
-
 
   return (
     <div
@@ -403,8 +430,7 @@ export default function App() {
           value={{
             stage,
             imgData,
-            rgbValues,
-            setRGBValues: handleRGBValues,
+            imgDim,
             stages,
             stagesData,
             speed,

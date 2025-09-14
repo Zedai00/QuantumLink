@@ -2,22 +2,32 @@ import { createTimeline, createScope, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
 import { Context } from "../Context/Context";
 
-export default function Flow({ input, convertor, output }) {
 
+export default function Flow({ input, convertor, output }) {
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(null);
-  const tlRef = useRef(null)
-  const { onComplete, speed, animate } = useContext(Context);
+  const tlRef = useRef(null);
+  const { onComplete, speed, animate, imgData } = useContext(Context);
+
+
 
   useEffect(() => {
     hasCompleted.current = false;
 
     scope.current = createScope({ root }).add(() => {
-      const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
-      const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
+      const {
+        translateX: ltcX,
+        translateY: ltcY,
+        rotate: ltcRotate,
+      } = svg.createMotionPath("#ltc");
+      const {
+        translateX: ctrX,
+        translateY: ctrY,
+        rotate: ctrRotate,
+      } = svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
-      tlRef.current = tl
+      tlRef.current = tl;
 
       // Input letters animation
       input.forEach((letter, i) => {
@@ -96,11 +106,16 @@ export default function Flow({ input, convertor, output }) {
 
   useEffect(() => {
     if (tlRef) {
-      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+      animate
+        ? utils.sync(() => tlRef.current.play())
+        : utils.sync(() => tlRef.current.pause());
     }
-  }, [animate])
+  }, [animate]);
   return (
-    <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
+    <div
+      ref={root}
+      className="relative bg-[#030313] w-full h-full overflow-hidden"
+    >
       {/* Motion paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path
@@ -142,4 +157,3 @@ export default function Flow({ input, convertor, output }) {
     </div>
   );
 }
-

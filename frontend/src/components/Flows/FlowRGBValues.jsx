@@ -3,7 +3,6 @@ import { motion, useAnimation } from "framer-motion";
 import { Context } from "../Context/Context";
 
 export default function FlowRGBValues({ input }) {
-
   const { onComplete } = useContext(Context);
 
   const rootRef = useRef(null);
@@ -18,34 +17,16 @@ export default function FlowRGBValues({ input }) {
 
   const converterAnim = useAnimation();
 
-  // normalize pixels into RGB
-  const pixelsArr = (() => {
-    if (!input) return [];
-    if (typeof input[0] === "number") {
-      const arr = [];
-      for (let i = 0; i < input.length; i += 4) {
-        arr.push([input[i], input[i + 1], input[i + 2]]);
-      }
-      return arr;
-    }
-    return input;
-  })();
 
-  // map to RGB colors
-   const pixelColors = pixelsArr.map(([r, g, b]) => {
-    return `rgb(${r * 85}, ${g * 85}, ${b * 85})`;
-  
+
+  console.log("pixelsArr sample(input):", input);
+
+  const pixelColors = input.map(([r, g, b]) => {
+    return `rgb(${r}, ${g}, ${b})`;
   });
-  // const pixelColors = pixelsArr.map(([r, g, b]) => {
-  //   const R = r * 85;
-  //   const G = g * 85;
-  //   const B = b * 85;
-  //   return {
-  //     color: `rgb(${R}, ${G}, ${B})`,
-  //     rgb: `rgb(${R}, ${G}, ${B})`,
-  //   };
-  // });
 
+
+  console.log("PixelColor: ", pixelColors);
 
   const animateCount = Math.min(2000, pixelColors.length);
 
@@ -134,8 +115,6 @@ export default function FlowRGBValues({ input }) {
   if (!input || pixelColors.length === 0) {
     return <div className="text-white">⚠️ No pixels to render</div>;
   }
-
- 
 
   const screenWidth = typeof window !== "undefined" ? window.innerWidth : 800;
 

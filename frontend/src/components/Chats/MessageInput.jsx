@@ -1,5 +1,3 @@
-
-
 import { useState, useRef } from "react";
 import { Send, Image as ImageIcon } from "lucide-react";
 
@@ -58,28 +56,17 @@ export default function MessageInput({ onSend }) {
         const imageData = ctx.getImageData(0, 0, width, height);
         const pixels = imageData.data;
 
-        // let binarySplit = [];
-
-        // for (let i = 0; i < pixels.length; i += 4) {
-        //   const r = pixels[i];
-        //   const g = pixels[i + 1];
-        //   const b = pixels[i + 2];
-
-        //   // Convert channels → 8-bit binary
-        //   const rBin = r.toString(2).padStart(8, "0");
-        //   const gBin = g.toString(2).padStart(8, "0");
-        //   const bBin = b.toString(2).padStart(8, "0");
-
-        //   // Flatten pixel into 2-bit chunks
-        //   const pixelChunks = (rBin + gBin + bBin).match(/.{1,2}/g);
-        //   binarySplit.push(pixelChunks); // e.g. ["11","10","01",... 12 total]
-        // }
-
         // console.log("Optimized flat binary per pixel:", binarySplit);
-        console.log("Pixel or message.content: " , pixels)
+        console.log("Pixel or message.content: ", pixels);
 
         setPreview(base64Image);
-        setMessage({ type: "image", content: pixels, b64Img: base64Image });
+        setMessage({
+          type: "image",
+          content: pixels, // Uint8ClampedArray
+          b64Img: base64Image,
+          width,
+          height,
+        });
       };
     };
 

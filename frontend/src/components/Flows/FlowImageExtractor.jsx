@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, useCallback, useContext } from "react";
 import { motion } from "framer-motion";
 import { Context } from "../Context/Context";
 
-
-export default function FlowImageExtractor({ input, output }) {
+export default function FlowImageExtractor({ input, output, width, height }) {
   const { onComplete } = useContext(Context);
   const rootRef = useRef(null);
   const originalRef = useRef(null);
@@ -11,44 +10,27 @@ export default function FlowImageExtractor({ input, output }) {
   const gridRef = useRef(null);
 
   // layout & animation control
-  const [startPoint, setStartPoint] = useState(null); // {x,y} relative to container
-  const [targets, setTargets] = useState([]); // array of {x,y} relative to container
-  const [cellSize, setCellSize] = useState(6); // in px (will compute)
-  const [gridCols, setGridCols] = useState(32);
+  const [startPoint, setStartPoint] = useState(null);
+  const [targets, setTargets] = useState([]);
+  const [cellSize, setCellSize] = useState(6);
+  const [gridCols, setGridCols] = useState(width || 32);
   const [layoutReady, setLayoutReady] = useState(false);
 
-  // normalize output to array of [r,g,b]
-  const pixelsArr = (() => {
-    if (!output) return [];
-    if (typeof output[0] === "number") {
-      // flat Uint8ClampedArray or number array RGBA
-      const arr = [];
-      for (let i = 0; i < output.length; i += 4) {
-        arr.push([output[i], output[i + 1], output[i + 2]]);
-      }
-      return arr;
-    }
-    // assume already [[r,g,b], ...]
-    return output;
-  })();
+  const pixelColors = output.map(([r, g, b]) => `rgb(${r},${g},${b})`);
+  console.log("PixelColors length: ", pixelColors.length);
 
-  // pixel colors (scale if tiny values like 0..3)
-  const pixelColors = pixelsArr.map(([r, g, b]) => {
-    return `rgb(${r * 85}, ${g * 85}, ${b * 85})`;
-  
-  });
+  const animateCount = Math.min(2000, pixelColors.length);
+  const animatedPixelIndices = Array.from(
+    { length: animateCount },
+    (_, i) => i
+  );
 
-  // Only animate first N pixels for performance (you can tweak)
-  const animateCount = Math.min( 2000, pixelColors.length);
-  const animatedPixelIndices = Array.from({ length: animateCount }, (_, i) => i);
+  const originalMoveDuration = 1.6;
+  const flightDuration = 0.7;
+  const stagger = 0.01;
+  const finalBuffer = 0.4;
+  const gap = 1;
 
-  // durations / timings
-  const originalMoveDuration = 1.6; // seconds the original slides into extractor
-  const flightDuration = 0.7; // seconds each pixel flies
-  const stagger = 0.01; // seconds between pixel launches
-  const finalBuffer = 0.4; // seconds after last pixel before stage complete
-
-  // compute layout (positions) in one place — call on mount and on resize
   const computeLayout = useCallback(() => {
     const root = rootRef.current;
     const extractor = extractorRef.current;
@@ -61,31 +43,31 @@ export default function FlowImageExtractor({ input, output }) {
     const origRect = original.getBoundingClientRect();
     const gridRect = grid.getBoundingClientRect();
 
-    // extractor center relative to container top-left
     const startX = extrRect.left + extrRect.width / 2 - rootRect.left;
     const startY = extrRect.top + extrRect.height / 2 - rootRect.top;
 
-    // compute grid columns — try to keep as near-square as possible
     const totalPixels = pixelColors.length || 1;
-    let cols = Math.round(Math.sqrt(totalPixels));
-    if (cols < 1) cols = 1;
+    let cols = width || Math.round(Math.sqrt(totalPixels));
+    let rows = height ? height : Math.ceil(totalPixels / cols);
 
-    // cell size fits within gridRect width (leave small padding)
-    const maxGridWidth = Math.max(64, Math.min(gridRect.width, rootRect.width * 0.28)); // cap
+    // fit within available space
+    const maxGridWidth = Math.max(
+      64,
+      Math.min(gridRect.width, rootRect.width * 0.28)
+    );
     const computedCell = Math.max(2, Math.floor(maxGridWidth / cols));
 
-    // compute target coordinates for first animateCount pixels
+    // compute target coordinates
     const t = [];
     for (let i = 0; i < animateCount; i++) {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      // target top-left for that cell relative to root
-      const targetX = gridRect.left - rootRect.left + col * computedCell;
-      const targetY = gridRect.top - rootRect.top + row * computedCell;
+      const targetX =
+        gridRect.left - rootRect.left + col * (computedCell + gap);
+      const targetY = gridRect.top - rootRect.top + row * (computedCell + gap);
       t.push({ x: targetX, y: targetY });
     }
 
-    // also compute how much original must translate to center on extractor
     const origCenterX = origRect.left + origRect.width / 2 - rootRect.left;
     const origCenterY = origRect.top + origRect.height / 2 - rootRect.top;
     const origDeltaX = startX - origCenterX;
@@ -96,11 +78,9 @@ export default function FlowImageExtractor({ input, output }) {
     setStartPoint({ x: startX, y: startY, origDeltaX, origDeltaY });
     setTargets(t);
     setLayoutReady(true);
-  }, [animateCount, pixelColors.length]);
+  }, [animateCount, pixelColors.length, width, height]);
 
-  // measure layout initially and on resize
   useEffect(() => {
-    // compute on next paint to ensure DOM measured
     const id = requestAnimationFrame(() => computeLayout());
     const onResize = () => computeLayout();
     window.addEventListener("resize", onResize);
@@ -110,26 +90,21 @@ export default function FlowImageExtractor({ input, output }) {
     };
   }, [computeLayout]);
 
-  // orchestrate animation and completion
   useEffect(() => {
     if (!layoutReady || !startPoint || targets.length === 0) return;
-
-    // reveal static grid only after last pixel arrives
     const totalTime =
-      originalMoveDuration + animateCount * stagger + flightDuration + finalBuffer; // seconds
-
-    // call onComplete after everything
+      originalMoveDuration +
+      animateCount * stagger +
+      flightDuration +
+      finalBuffer;
     const completeTimer = setTimeout(() => {
       onComplete?.();
     }, totalTime * 1000 + 50);
-
-    return () => {
-      clearTimeout(completeTimer);
-    };
+    return () => clearTimeout(completeTimer);
   }, [layoutReady, startPoint, targets, animateCount, onComplete]);
 
   if (!input || !output || pixelColors.length === 0) {
-    return <div className="text-white">⚠️ No pixels to render</div>;
+    return <div className="text-stone-900">⚠️ No pixels to render</div>;
   }
 
   return (
@@ -137,8 +112,8 @@ export default function FlowImageExtractor({ input, output }) {
       ref={rootRef}
       className="relative w-full h-screen bg-[#030313] text-white overflow-hidden"
     >
+      {/* Left: Original image */}
       <div className="absolute left-8 top-12 flex flex-col items-center">
-        {/* Original image — we will animate this into the extractor using computed delta */}
         <motion.div
           ref={originalRef}
           initial={{ x: 0, y: 0, opacity: 1 }}
@@ -155,11 +130,17 @@ export default function FlowImageExtractor({ input, output }) {
           className="flex flex-col items-center"
         >
           <h3 className="mb-2 text-sm">Original</h3>
-          <img src={input} width={150} height={150} alt="original" draggable={false} />
+          <img
+            src={input}
+            width={150}
+            height={150}
+            alt="original"
+            draggable={false}
+          />
         </motion.div>
       </div>
 
-      {/* Extractor box (center column) */}
+      {/* Extractor */}
       <div className="absolute left-1/2 -translate-x-1/2 top-1/3">
         <div
           ref={extractorRef}
@@ -169,40 +150,36 @@ export default function FlowImageExtractor({ input, output }) {
         </div>
       </div>
 
-      {/* Right static grid container — we place it near right side */}
+      {/* Grid (final pixels) */}
       <div
         ref={gridRef}
         className="absolute right-10 top-28"
         style={{
-          // actual CSS grid to display final pixels (hidden until reveal)
-          width: `${gridCols * cellSize}px`,
-          height: `${Math.ceil(pixelColors.length / gridCols) * cellSize}px`,
+          width: `${gridCols * (cellSize + gap)}px`,
+          height: `${
+            Math.ceil(pixelColors.length / gridCols) * (cellSize + gap)
+          }px`,
           display: "grid",
           gridTemplateColumns: `repeat(${gridCols}, ${cellSize}px)`,
-          gap: 1,
-          background: "transparent",
+          gap: gap,
         }}
-      >
-        
-      </div>
+      ></div>
 
-      {/* Animated pixel layer: absolute positioned elements that fly from extractor -> targets */}
-      {/* We render only first `animateCount` pixels to keep performance sane. */}
-      <div className="absolute left-0 top-0 pointer-events-none" style={{ width: "100%", height: "100%" }}>
+      {/* Flying pixels */}
+      <div className="absolute left-0 top-0 pointer-events-none w-full h-full">
         {startPoint &&
           targets.map((t, i) => {
             const color = pixelColors[i];
-            // initial: startPoint (extractor center); target: t (grid cell)
             return (
               <motion.div
                 key={`fly-${i}`}
-                initial={{ x: startPoint.x, y: startPoint.y, opacity: 1, scale: 0.9 }}
-                animate={{
-                  x: t.x,
-                  y: t.y,
+                initial={{
+                  x: startPoint.x,
+                  y: startPoint.y,
                   opacity: 1,
-                  scale: 1,
+                  scale: 0.9,
                 }}
+                animate={{ x: t.x, y: t.y, opacity: 1, scale: 1 }}
                 transition={{
                   delay: originalMoveDuration + i * stagger,
                   duration: flightDuration,
@@ -215,7 +192,6 @@ export default function FlowImageExtractor({ input, output }) {
                   width: cellSize,
                   height: cellSize,
                   backgroundColor: color,
-                  borderRadius: 1,
                 }}
               />
             );
