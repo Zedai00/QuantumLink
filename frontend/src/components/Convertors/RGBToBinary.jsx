@@ -3,11 +3,15 @@ import Flow from "../Flows/FlowArray";
 import { Context } from "../Context/Context";
 
 export default function RGBToBinary() {
-
-  const { stage, stagesData } = useContext(Context)
-
+  const { stage, stagesData, imgDim } = useContext(Context);
 
   return (
-    <Flow input={stagesData[stage].input} convertor="RGB To Binary" output={stagesData[stage].output} />
+    <Flow
+      input={stagesData[stage].input}
+      convertor="RGB To Binary"
+      output={stagesData[stage].output}
+      width={imgDim?.width}
+      height={imgDim?.height}
+    />
   );
 }

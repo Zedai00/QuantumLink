@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback, useContext } from "react";
+import { useEffect, useRef, useState, useCallback, useContext, useMemo } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Context } from "../Context/Context";
 
-export default function FlowRGBValues({ input }) {
+export default function FlowRGBValues({ input, output, width, height }) {
   const { onComplete } = useContext(Context);
 
   const rootRef = useRef(null);
@@ -11,26 +11,21 @@ export default function FlowRGBValues({ input }) {
 
   const [layoutReady, setLayoutReady] = useState(false);
   const [positions, setPositions] = useState([]);
-  const [cellSize, setCellSize] = useState(4);
-  const [gridCols, setGridCols] = useState(32);
-  const [done, setDone] = useState(false);
+  const [cellSize, setCellSize] = useState(6);
+  const [gridCols, setGridCols] = useState(width || 32);
 
   const converterAnim = useAnimation();
 
+  // Memoize pixelColors to avoid unnecessary recalcs
+  const pixelColors = useMemo(
+    () => (input ? input.map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`) : []),
+    [input]
+  );
 
-
-  console.log("pixelsArr sample(input):", input);
-
-  const pixelColors = input.map(([r, g, b]) => {
-    return `rgb(${r}, ${g}, ${b})`;
-  });
-
-
-  console.log("PixelColor: ", pixelColors);
-
+  const gap = 1;
   const animateCount = Math.min(2000, pixelColors.length);
 
-  // measure layout
+  // Compute layout once per stage
   const computeLayout = useCallback(() => {
     const root = rootRef.current;
     const grid = gridRef.current;
@@ -41,13 +36,12 @@ export default function FlowRGBValues({ input }) {
     const gridRect = grid.getBoundingClientRect();
     const convRect = conv.getBoundingClientRect();
 
-    const totalPixels = pixelColors.length || 1;
-    let cols = Math.round(Math.sqrt(totalPixels));
-    if (cols < 1) cols = 1;
+    const cols = width || Math.round(Math.sqrt(pixelColors.length));
+    const rows = height || Math.ceil(pixelColors.length / cols);
 
     const maxGridWidth = Math.max(
       64,
-      Math.min(gridRect.width, rootRect.width * 0.28)
+      Math.min(gridRect.width || 150, rootRect.width * 0.28)
     );
     const computedCell = Math.max(2, Math.floor(maxGridWidth / cols));
 
@@ -55,8 +49,11 @@ export default function FlowRGBValues({ input }) {
     for (let i = 0; i < animateCount; i++) {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      const startX = gridRect.left - rootRect.left + col * computedCell;
-      const startY = gridRect.top - rootRect.top + row * computedCell;
+
+      const startX =
+        gridRect.left - rootRect.left + col * (computedCell + gap);
+      const startY =
+        gridRect.top - rootRect.top + row * (computedCell + gap);
 
       const midX = convRect.left - rootRect.left + convRect.width / 2;
       const midY = convRect.top - rootRect.top + convRect.height / 2;
@@ -73,43 +70,53 @@ export default function FlowRGBValues({ input }) {
     setGridCols(cols);
     setCellSize(computedCell);
     setLayoutReady(true);
-  }, []);
+  }, [width, height, pixelColors, animateCount]);
 
+  // Trigger computeLayout safely
   useEffect(() => {
     const id = requestAnimationFrame(() => computeLayout());
-    window.addEventListener("resize", computeLayout);
+    const onResize = () => requestAnimationFrame(computeLayout);
+    window.addEventListener("resize", onResize);
+
     return () => {
       cancelAnimationFrame(id);
-      window.removeEventListener("resize", computeLayout);
+      window.removeEventListener("resize", onResize);
     };
   }, [computeLayout]);
 
-  // trigger glow for each pixel as it passes converter
+  // Animate glow with cleanup
   useEffect(() => {
     if (!layoutReady) return;
+    let timers = [];
+
     positions.forEach((p, i) => {
-      setTimeout(() => {
+      const glowOn = setTimeout(() => {
         converterAnim.start({
           boxShadow: "0 0 20px #7f00ff, 0 0 40px #00ffff",
           backgroundColor: "#1f1f40",
         });
-        setTimeout(() => {
-          converterAnim.start({
-            boxShadow: "0 0 0px transparent",
-            backgroundColor: "#111827",
-          });
-        }, 300);
       }, i * 500 + 200);
+
+      const glowOff = setTimeout(() => {
+        converterAnim.start({
+          boxShadow: "0 0 0px transparent",
+          backgroundColor: "#111827",
+        });
+      }, i * 500 + 500);
+
+      timers.push(glowOn, glowOff);
     });
 
-    // schedule completion after last RGB output finishes
     const totalTime = positions.length * 500 + 4000;
-    const timer = setTimeout(() => {
-      setDone(true);
+    const done = setTimeout(() => {
       if (onComplete) onComplete();
     }, totalTime);
 
-    return () => clearTimeout(timer);
+    timers.push(done);
+
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+    };
   }, [layoutReady, positions, converterAnim, onComplete]);
 
   if (!input || pixelColors.length === 0) {
@@ -123,16 +130,16 @@ export default function FlowRGBValues({ input }) {
       ref={rootRef}
       className="relative w-full h-screen bg-[#030313] text-white overflow-hidden"
     >
-      {/* Left: Pixel grid scaffold */}
+      {/* Pixel grid */}
       <div
         ref={gridRef}
         className="absolute left-10 top-1/2 -translate-y-1/2"
         style={{
-          width: `${gridCols * cellSize}px`,
-          height: `${Math.ceil(pixelColors.length / gridCols) * cellSize}px`,
+          width: `${gridCols * (cellSize + gap)}px`,
+          height: `${Math.ceil(pixelColors.length / gridCols) * (cellSize + gap)}px`,
           display: "grid",
           gridTemplateColumns: `repeat(${gridCols}, ${cellSize}px)`,
-          gap: 1,
+          gap: gap,
         }}
       >
         {positions.map((_, i) => (
@@ -141,14 +148,13 @@ export default function FlowRGBValues({ input }) {
             style={{
               width: cellSize,
               height: cellSize,
-              backgroundColor: "transparent", // no overlap
-              borderRadius: 1,
+              backgroundColor: "transparent",
             }}
           />
         ))}
       </div>
 
-      {/* Center: Converter */}
+      {/* Converter */}
       <motion.div
         ref={converterRef}
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
@@ -163,18 +169,14 @@ export default function FlowRGBValues({ input }) {
         positions.map((p, i) => (
           <motion.div
             key={`fly-${i}`}
-            className="absolute rounded-sm"
+            className="absolute"
             style={{
               backgroundColor: p.color,
               width: cellSize,
               height: cellSize,
             }}
             initial={{ x: p.start.x, y: p.start.y, opacity: 1 }}
-            animate={{
-              x: [p.start.x, p.mid.x],
-              y: [p.start.y, p.mid.y],
-              opacity: 1,
-            }}
+            animate={{ x: [p.start.x, p.mid.x], y: [p.start.y, p.mid.y] }}
             transition={{
               delay: i * 0.3,
               duration: 1.5,
@@ -183,7 +185,7 @@ export default function FlowRGBValues({ input }) {
           />
         ))}
 
-      {/* RGB values flying to the right and disappearing */}
+      {/* RGB values */}
       {layoutReady &&
         positions.map((p, i) => (
           <motion.div
@@ -192,13 +194,13 @@ export default function FlowRGBValues({ input }) {
             initial={{ x: p.mid.x, y: p.mid.y, opacity: 0, scale: 0.9 }}
             animate={{
               x: screenWidth - 80,
-              y: p.mid.y + i * 6, // vertical offset to avoid overlap
+              y: p.mid.y + i * 6,
               opacity: [0, 1, 1, 0],
-              scale: [0.9, 1.05, 1], // slight pop/flicker
+              scale: [0.9, 1.05, 1],
             }}
             transition={{
-              delay: i * 0.6 + 1.5, // slower stagger
-              duration: 5, // slow travel across screen
+              delay: i * 0.8 + 1.5,
+              duration: 5,
               ease: "easeInOut",
             }}
           >
@@ -211,12 +213,12 @@ export default function FlowRGBValues({ input }) {
               style={{
                 color: p.color,
                 textShadow: `
-            0 0 5px ${p.color},
-            0 0 10px ${p.color},
-            0 0 20px ${p.color},
-            0 0 40px cyan,
-            0 0 80px purple
-          `,
+                  0 0 5px ${p.color},
+                  0 0 10px ${p.color},
+                  0 0 20px ${p.color},
+                  0 0 40px cyan,
+                  0 0 80px purple
+                `,
               }}
             >
               {p.color}
