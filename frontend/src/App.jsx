@@ -24,6 +24,7 @@ export default function App() {
   const [stage, setStage] = useState(0);
   const [stages, setStages] = useState([AliceChat]);
   const [imgData, setImgData] = useState();
+  const [rgbValues, setRGBValues] = useState([]);
   const [complete, setComplete] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [animateState, setAnimateState] = useState(true);
@@ -181,10 +182,7 @@ export default function App() {
         rgbGrid.push(rgbPixels.slice(i, i + width));
       }
 
-      // stagesData["ImageExtractor"] = {
-      //   input: rgbGrid, // left canvas can draw
-      //   output: binarySplit, // right grid shows binary
-      // };
+
 
       pixelBinary = [...binarySplit]; // for later stages
     }
@@ -261,7 +259,7 @@ export default function App() {
         // { stage: 0, sender, input: data, output: data }, // AliceChat
         { stage: 0, input: inputMsg, output: data }, // AliceChat
         { stage: 1, input: data, output: pixelBinary }, // ImageResizerPixelExtractor 
-        { stage: 2, input: pixelBinary, output: " .... " }, // PixelToRGB -> PixelToBinary
+        { stage: 2, input: pixelBinary, output: rgbValues }, // PixelToRGB -> PixelToBinary
         { stage: 3, input: pixelBinary, output: gates }, // BinarySplitter + BinaryToGate
         { stage: 4, input: gates.flat(), output: blochVisual }, // BlochPage
         { stage: 5, input: blochVisual, output: gatesBack }, // GateToBinary
@@ -279,6 +277,10 @@ export default function App() {
     setStage(0);
     setCircuitView(false);
   };
+
+  const handleRGBValues = (rgb) => {
+    setRGBValues(rgb)
+  }
 
   const isBlochPage = stages[stage] === BlochPage;
   const StageToRender = isBlochPage && circuitView ? Circuit : stages[stage];
@@ -401,6 +403,8 @@ export default function App() {
           value={{
             stage,
             imgData,
+            rgbValues,
+            setRGBValues: handleRGBValues,
             stages,
             stagesData,
             speed,

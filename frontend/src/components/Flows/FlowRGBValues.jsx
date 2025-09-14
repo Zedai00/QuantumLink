@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useContext } from "react";
 import { motion, useAnimation } from "framer-motion";
+import { Context } from "../Context/Context";
 
-export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
+export default function FlowRGBValues({ input }) {
+
+  const { onComplete } = useContext(Context);
+
   const rootRef = useRef(null);
   const gridRef = useRef(null);
   const converterRef = useRef(null);
@@ -28,15 +32,20 @@ export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
   })();
 
   // map to RGB colors
-  const pixelColors = pixelsArr.map(([r, g, b]) => {
-    const R = r * 85;
-    const G = g * 85;
-    const B = b * 85;
-    return {
-      color: `rgb(${R}, ${G}, ${B})`,
-      rgb: `rgb(${R}, ${G}, ${B})`,
-    };
+   const pixelColors = pixelsArr.map(([r, g, b]) => {
+    return `rgb(${r * 85}, ${g * 85}, ${b * 85})`;
+  
   });
+  // const pixelColors = pixelsArr.map(([r, g, b]) => {
+  //   const R = r * 85;
+  //   const G = g * 85;
+  //   const B = b * 85;
+  //   return {
+  //     color: `rgb(${R}, ${G}, ${B})`,
+  //     rgb: `rgb(${R}, ${G}, ${B})`,
+  //   };
+  // });
+
 
   const animateCount = Math.min(2000, pixelColors.length);
 
@@ -74,7 +83,7 @@ export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
       initialPosition.push({
         start: { x: startX, y: startY },
         mid: { x: midX, y: midY },
-        ...pixelColors[i],
+        color: pixelColors[i],
         index: i,
       });
     }
@@ -126,9 +135,7 @@ export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
     return <div className="text-white">⚠️ No pixels to render</div>;
   }
 
-  if (done && NextUI) {
-    return <NextUI />;
-  }
+ 
 
   const screenWidth = typeof window !== "undefined" ? window.innerWidth : 800;
 
@@ -233,7 +240,7 @@ export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
           `,
               }}
             >
-              {p.rgb}
+              {p.color}
             </span>
           </motion.div>
         ))}
