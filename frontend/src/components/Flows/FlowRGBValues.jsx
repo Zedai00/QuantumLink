@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 
-export default function FlowRGBValues({ input, output }) {
+export default function FlowRGBValues({ input, onComplete, nextUI: NextUI }) {
   const rootRef = useRef(null);
   const gridRef = useRef(null);
   const converterRef = useRef(null);
 
   const [layoutReady, setLayoutReady] = useState(false);
   const [positions, setPositions] = useState([]);
-  const [target, setTarget] = useState([]);
   const [cellSize, setCellSize] = useState(4);
   const [gridCols, setGridCols] = useState(32);
+  const [done, setDone] = useState(false);
 
   const converterAnim = useAnimation();
 
@@ -27,7 +27,7 @@ export default function FlowRGBValues({ input, output }) {
     return input;
   })();
 
-  // pixel colors (scale if tiny values like 0..3)
+  // map to RGB colors
   const pixelColors = pixelsArr.map(([r, g, b]) => {
     const R = r * 85;
     const G = g * 85;
@@ -37,18 +37,6 @@ export default function FlowRGBValues({ input, output }) {
       rgb: `rgb(${R}, ${G}, ${B})`,
     };
   });
-
-  const [showOutput, setShowOutput] = useState([]);
-
-  useEffect(() => {
-    // reveal outputs one by one, in sync with animations
-    pixelColors.forEach((_, i) => {
-      const timer = setTimeout(() => {
-        setShowOutput((prev) => [...prev, i]);
-      }, 500 + i * 600); // delay: wait until pixel passes center
-      return () => clearTimeout(timer);
-    });
-  }, []);
 
   const animateCount = Math.min(2000, pixelColors.length);
 
@@ -63,16 +51,14 @@ export default function FlowRGBValues({ input, output }) {
     const gridRect = grid.getBoundingClientRect();
     const convRect = conv.getBoundingClientRect();
 
-    // compute grid columns — try to keep as near-square as possible
     const totalPixels = pixelColors.length || 1;
     let cols = Math.round(Math.sqrt(totalPixels));
     if (cols < 1) cols = 1;
 
-    // cell size fits within gridRect width (leave small padding)
     const maxGridWidth = Math.max(
       64,
       Math.min(gridRect.width, rootRect.width * 0.28)
-    ); // cap
+    );
     const computedCell = Math.max(2, Math.floor(maxGridWidth / cols));
 
     const initialPosition = [];
@@ -94,7 +80,6 @@ export default function FlowRGBValues({ input, output }) {
     }
 
     setPositions(initialPosition);
-    setTarget(initialPosition);
     setGridCols(cols);
     setCellSize(computedCell);
     setLayoutReady(true);
@@ -109,10 +94,10 @@ export default function FlowRGBValues({ input, output }) {
     };
   }, [computeLayout]);
 
-  // trigger glow for each pixel
+  // trigger glow for each pixel as it passes converter
   useEffect(() => {
     if (!layoutReady) return;
-    target.forEach((p, i) => {
+    positions.forEach((p, i) => {
       setTimeout(() => {
         converterAnim.start({
           boxShadow: "0 0 20px #7f00ff, 0 0 40px #00ffff",
@@ -126,10 +111,23 @@ export default function FlowRGBValues({ input, output }) {
         }, 300);
       }, i * 500 + 200);
     });
-  }, [layoutReady, target, converterAnim]);
 
-  if (!output || pixelColors.length === 0) {
+    // schedule completion after last RGB output finishes
+    const totalTime = positions.length * 500 + 4000;
+    const timer = setTimeout(() => {
+      setDone(true);
+      if (onComplete) onComplete();
+    }, totalTime);
+
+    return () => clearTimeout(timer);
+  }, [layoutReady, positions, converterAnim, onComplete]);
+
+  if (!input || pixelColors.length === 0) {
     return <div className="text-white">⚠️ No pixels to render</div>;
+  }
+
+  if (done && NextUI) {
+    return <NextUI />;
   }
 
   const screenWidth = typeof window !== "undefined" ? window.innerWidth : 800;
@@ -139,7 +137,7 @@ export default function FlowRGBValues({ input, output }) {
       ref={rootRef}
       className="relative w-full h-screen bg-[#030313] text-white overflow-hidden"
     >
-      {/* Left: Pixel grid */}
+      {/* Left: Pixel grid scaffold */}
       <div
         ref={gridRef}
         className="absolute left-10 top-1/2 -translate-y-1/2"
@@ -149,7 +147,6 @@ export default function FlowRGBValues({ input, output }) {
           display: "grid",
           gridTemplateColumns: `repeat(${gridCols}, ${cellSize}px)`,
           gap: 1,
-          background: "transparent",
         }}
       >
         {positions.map((_, i) => (
@@ -158,7 +155,7 @@ export default function FlowRGBValues({ input, output }) {
             style={{
               width: cellSize,
               height: cellSize,
-              backgroundColor: "transparent", // no duplicate pixels
+              backgroundColor: "transparent", // no overlap
               borderRadius: 1,
             }}
           />
@@ -177,7 +174,7 @@ export default function FlowRGBValues({ input, output }) {
 
       {/* Flying pixels */}
       {layoutReady &&
-        target.map((p, i) => (
+        positions.map((p, i) => (
           <motion.div
             key={`fly-${i}`}
             className="absolute rounded-sm"
@@ -206,15 +203,16 @@ export default function FlowRGBValues({ input, output }) {
           <motion.div
             key={`rgb-${i}`}
             className="absolute flex items-center gap-1 text-xs"
-            initial={{ x: p.mid.x, y: p.mid.y, opacity: 0 }}
+            initial={{ x: p.mid.x, y: p.mid.y, opacity: 0, scale: 0.9 }}
             animate={{
-              x: screenWidth - 50,
-              y: p.mid.y,
-              opacity: [0, 1, 0],
+              x: screenWidth - 80,
+              y: p.mid.y + i * 6, // vertical offset to avoid overlap
+              opacity: [0, 1, 1, 0],
+              scale: [0.9, 1.05, 1], // slight pop/flicker
             }}
             transition={{
-              delay: i * 0.3 + 1.5,
-              duration: 4,
+              delay: i * 0.6 + 1.5, // slower stagger
+              duration: 5, // slow travel across screen
               ease: "easeInOut",
             }}
           >
@@ -222,7 +220,21 @@ export default function FlowRGBValues({ input, output }) {
               className="w-3 h-3 rounded-sm border border-gray-600"
               style={{ backgroundColor: p.color }}
             />
-            <span className="font-bold text-lg">{p.rgb}</span>
+            <span
+              className="font-bold text-lg whitespace-nowrap"
+              style={{
+                color: p.color,
+                textShadow: `
+            0 0 5px ${p.color},
+            0 0 10px ${p.color},
+            0 0 20px ${p.color},
+            0 0 40px cyan,
+            0 0 80px purple
+          `,
+              }}
+            >
+              {p.rgb}
+            </span>
           </motion.div>
         ))}
     </div>
