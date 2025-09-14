@@ -28,16 +28,15 @@ export default function FlowRGBValues({ input, output }) {
   })();
 
   // pixel colors (scale if tiny values like 0..3)
- const pixelColors = pixelsArr.map(([r, g, b]) => {
-  const R = r * 85;
-  const G = g * 85;
-  const B = b * 85;
-  return {
-    color: `rgb(${R}, ${G}, ${B})`,
-    rgb: `rgb(${R}, ${G}, ${B})`,
-  };
-});
-
+  const pixelColors = pixelsArr.map(([r, g, b]) => {
+    const R = r * 85;
+    const G = g * 85;
+    const B = b * 85;
+    return {
+      color: `rgb(${R}, ${G}, ${B})`,
+      rgb: `rgb(${R}, ${G}, ${B})`,
+    };
+  });
 
   const [showOutput, setShowOutput] = useState([]);
 
@@ -94,27 +93,8 @@ export default function FlowRGBValues({ input, output }) {
       });
     }
 
-    const newCols = 10;
-    const newComputedCell = 1;
-    const newPosition = [];
-    for (let i = 0; i < animateCount; i++) {
-      const row = Math.floor(i / newCols);
-      const col = i % newCols;
-      const startX = gridRect.left - rootRect.left + col * newComputedCell;
-      const startY = gridRect.top - rootRect.top + row * newComputedCell;
-
-      const midX = convRect.left - rootRect.left + convRect.width / 2;
-      const midY = convRect.top - rootRect.top + convRect.height / 2;
-
-      newPosition.push({
-        start: { x: startX, y: startY },
-        mid: { x: midX, y: midY },
-        ...pixelColors[i],
-        index: i,
-      });
-    }
     setPositions(initialPosition);
-    setTarget(newPosition);
+    setTarget(initialPosition);
     setGridCols(cols);
     setCellSize(computedCell);
     setLayoutReady(true);
@@ -172,27 +152,17 @@ export default function FlowRGBValues({ input, output }) {
           background: "transparent",
         }}
       >
-        {positions.map((t, i) => {
-          const color = pixelColors[i];
-          return (
-            <motion.div
-              key={`grid-${i}`}
-              className="w-3 h-3"
-              style={{
-                width: cellSize,
-                height: cellSize,
-                backgroundColor: t.color,
-                borderRadius: 1,
-              }}
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 0 }}
-              transition={{
-                delay: i * 0.5, // fade out in sync with animation start
-                duration: 0.3,
-              }}
-            />
-          );
-        })}
+        {positions.map((_, i) => (
+          <div
+            key={`grid-${i}`}
+            style={{
+              width: cellSize,
+              height: cellSize,
+              backgroundColor: "transparent", // no duplicate pixels
+              borderRadius: 1,
+            }}
+          />
+        ))}
       </div>
 
       {/* Center: Converter */}
@@ -207,14 +177,14 @@ export default function FlowRGBValues({ input, output }) {
 
       {/* Flying pixels */}
       {layoutReady &&
-        target.map((p, i) => ( 
+        target.map((p, i) => (
           <motion.div
             key={`fly-${i}`}
             className="absolute rounded-sm"
             style={{
               backgroundColor: p.color,
               width: cellSize,
-              height: cellSize
+              height: cellSize,
             }}
             initial={{ x: p.start.x, y: p.start.y, opacity: 1 }}
             animate={{
