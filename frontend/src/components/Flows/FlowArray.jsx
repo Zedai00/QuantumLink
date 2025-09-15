@@ -8,9 +8,9 @@ export default function Flow({ input, convertor, output }) {
   const scope = useRef(null);
   const hasCompleted = useRef(null);
   const tlRef = useRef(null);
-  const { onComplete, speed, animate, imgData } = useContext(Context);
+  const { onComplete, speed, animate } = useContext(Context);
 
-
+console.log(output)
 
   useEffect(() => {
     hasCompleted.current = false;

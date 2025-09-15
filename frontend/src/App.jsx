@@ -152,7 +152,6 @@ export default function App() {
     if (inputMsg.type === "image") {
       const { b64Img, content: pixels, width, height } = inputMsg;
 
-
       setImgData(b64Img);
       setImgDim({ width, height });
 
@@ -168,6 +167,9 @@ export default function App() {
         const rBin = r.toString(2).padStart(8, "0");
         const gBin = g.toString(2).padStart(8, "0");
         const bBin = b.toString(2).padStart(8, "0");
+
+        
+        binary.push([rBin, gBin, bBin]);
 
         // Split into 2-bit chunks
         const pixelChunks = (rBin + gBin + bBin).match(/.{1,2}/g);
@@ -193,19 +195,7 @@ export default function App() {
       return arr;
     })();
 
-    const rgbValues = pixelsArr.flatMap((arr) => {
-      return arr
-        .map((v) => parseInt(v, 2) || 0)
-        .reduce((colors, val, i, src) => {
-          if (i % 3 === 0) {
-            const r = src[i] * 85;
-            const g = src[i + 1] * 85;
-            const b = src[i + 2] * 85;
-            colors.push(`rgb(${r}, ${g}, ${b})`);
-          }
-          return colors;
-        }, []);
-    });
+    const rgbValues = rgbPixels.map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`);
 
     console.log("pixelsArr sample:", pixelsArr.slice(0, 5));
 
@@ -290,7 +280,7 @@ export default function App() {
         { stage: 0, input: inputMsg, output: data }, // AliceChat
         { stage: 1, input: data, output: rgbPixels }, // ImageResizerPixelExtractor
         { stage: 2, input: rgbPixels, output: rgbValues }, // PixelToRGB
-        { stage: 3, input: rgbValues, output: binary }, // PixelToBinary
+        { stage: 3, input: rgbValues, output: binary }, // RGBToBinary
         { stage: 4, input: binary, output: binarySplit }, // BinarySplitter
         { stage: 5, input: binarySplit, output: gates }, // BinaryToGate
         { stage: 6, input: gates.flat(), output: blochVisual }, // BlochPage
