@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import FlowRGBBinarySplitter from "../Flows/FlowArrayTo2D";
+import FlowRGBBinarySplitter from "../Flows/FlowImage/FlowRGBBinarySplitter";
 import { Context } from "../Context/Context";
 
 export default function RGBBinarySplitter() {
@@ -7,9 +7,9 @@ export default function RGBBinarySplitter() {
 
   return (
     <FlowRGBBinarySplitter
-      input={stagesData[stage].input.slice(0, 10)}
+      input={stagesData[stage].input}
       convertor="BinarySplitter"
-      output={stagesData[stage].output.slice(0, 10)}
+      output={stagesData[stage].output}
     />
   );
 }
