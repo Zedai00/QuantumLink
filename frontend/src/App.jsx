@@ -55,7 +55,7 @@ export default function App() {
     RGBBinarySplitter,
 
     BinaryToGate,
-    
+
     BlochPage,
     GateToBinary,
     BinaryMerger,
@@ -131,13 +131,13 @@ export default function App() {
 
   const splitBinTo2 = (binary) => {
     return binary.map((item) =>
-        item.split("").reduce((acc, char, index) => {
-          if (index % 2 === 0) acc.push("");
-          acc[acc.length - 1] += char;
-          return acc;
-        }, [])
-      );
-  }
+      item.split("").reduce((acc, char, index) => {
+        if (index % 2 === 0) acc.push("");
+        acc[acc.length - 1] += char;
+        return acc;
+      }, [])
+    );
+  };
 
   const generateStagesData = (inputMsg) => {
     let binarySplit = [];
@@ -153,14 +153,6 @@ export default function App() {
       binary = letters.map((l) => l.charCodeAt(0).toString(2).padStart(8, "0"));
       // Split binary into pairs
       binarySplit = splitBinTo2(binary);
-
-      // binarySplit = binary.map((item) =>
-      //   item.split("").reduce((acc, char, index) => {
-      //     if (index % 2 === 0) acc.push("");
-      //     acc[acc.length - 1] += char;
-      //     return acc;
-      //   }, [])
-      // );
     }
 
     if (inputMsg.type === "image") {
@@ -184,27 +176,36 @@ export default function App() {
 
         binary.push(rBin + gBin + bBin);
 
-        // // Split into 2-bit chunks
-        // const pixelChunks = (rBin + gBin + bBin).match(/.{1,2}/g) || [];
-        // for (let k = 0; k < pixelChunks.length; k += 4) {
-        //   binarySplit.push(pixelChunks.slice(k, k + 4));
-        // }
+
+
+        // Split into 2-bit chunks
+        const pixelChunks = (rBin + gBin + bBin).slice(0,8).match(/.{1,2}/g) || [];
+        for (let k = 0; k < pixelChunks.length; k += 4) {
+          binarySplit.push(pixelChunks.slice(k, k + 4));
+        }
       }
+
+      binarySplit = binarySplit.slice(0, 20);
 
       pixelBinary = [...binarySplit]; // for later stages
     }
 
-        // Reduced Values 
-    const rgbValues = rgbPixels.slice(0,20).map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`);
+    // Reduced Values
+    const rgbValues = rgbPixels
+      .slice(0, 20)
+      .map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`);
     const reducedImgBin = binary.slice(0, 20);
 
-    const b8Bin = reducedImgBin.map(b => b.slice(0,8));
+    const b8Bin = reducedImgBin.map((b) => b.slice(0, 8));
     const b8BinSplit = splitBinTo2(b8Bin);
 
+    console.log("Step1 Pixels:", pixelBinary);
+    console.log("Step2 Binary:", binary);
+    console.log("Step3 Split:", binarySplit);
+    console.log("Step4 RGB Output:", b8Bin);
+    console.log("Step4 RGB Output:", b8BinSplit);
 
 
-    if (imgData) binarySplit = b8BinSplit;
-    
     // Convert binary/pixels to quantum gates
     const gates = binarySplit.map((row) =>
       row.map((b) => {
@@ -255,10 +256,6 @@ export default function App() {
     const mergedText = lettersBack.join("");
 
     const { content: data } = inputMsg;
-
-
-    
-
 
     if (inputMsg.type === "text") {
       return [
