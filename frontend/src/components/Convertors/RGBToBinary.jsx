@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flows/FlowArray";
+import Flow from "../Flows/FlowText/FlowArray";
 import { Context } from "../Context/Context";
 
 export default function RGBToBinary() {

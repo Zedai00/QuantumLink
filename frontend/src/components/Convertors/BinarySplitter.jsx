@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flows/FlowArrayTo2D";
+import Flow from "../Flows/FlowText/FlowArrayTo2D";
 import { Context } from "../Context/Context";
 
 export default function BinarySplitter() {

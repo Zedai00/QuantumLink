@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flows/Flow2DToArray";
+import Flow from "../Flows/FlowText/Flow2DToArray";
 import { Context } from "../Context/Context";
 
 export default function BinaryMerger() {

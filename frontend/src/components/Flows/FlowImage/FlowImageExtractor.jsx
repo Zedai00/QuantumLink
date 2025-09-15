@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useContext } from "react";
 import { motion } from "framer-motion";
-import { Context } from "../Context/Context";
+import { Context } from "../../Context/Context";
 
 export default function FlowImageExtractor({ input, output, width, height }) {
   const { onComplete } = useContext(Context);

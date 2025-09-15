@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import FlowRGBValues from "../Flows/FlowRGBValues";
+import FlowRGBValues from "../Flows/FlowImage/FlowRGBValues";
 import { Context } from "../Context/Context";
 
 export default function PixelToRGB() {

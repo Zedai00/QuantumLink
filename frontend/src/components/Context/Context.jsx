@@ -11,6 +11,8 @@ export const Context = createContext({
   stagesData: null,
   speed: null,
   animate: null,
+  setImgDim: () => {},
+  setImgData: () => {},
   onComplete: () => { },
   onChatComplete: () => { },
   onAliceInput: () => { },

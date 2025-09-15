@@ -1,7 +1,6 @@
 import { createTimeline, createScope, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
-import { Context } from "../Context/Context";
-
+import { Context } from "../../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
   const root = useRef(null);
@@ -9,8 +8,6 @@ export default function Flow({ input, convertor, output }) {
   const hasCompleted = useRef(null);
   const tlRef = useRef(null);
   const { onComplete, speed, animate } = useContext(Context);
-
-console.log(output)
 
   useEffect(() => {
     hasCompleted.current = false;

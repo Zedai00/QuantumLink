@@ -1,11 +1,11 @@
 import { createScope, createTimeline, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
-import { Context } from "../Context/Context";
+import { Context } from "../../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
   const root = useRef(null);
   const scope = useRef(null);
-  const hasCompleted = useRef(null);
+  const hasCompleted = useRef(false);
   const tlRef = useRef(null)
   const { onComplete, speed, animate } = useContext(Context);
 
@@ -13,59 +13,63 @@ export default function Flow({ input, convertor, output }) {
     hasCompleted.current = false;
 
     scope.current = createScope({ root }).add(() => {
-      const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } = svg.createMotionPath("#ltc");
-      const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } = svg.createMotionPath("#ctr");
+      const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } =
+        svg.createMotionPath("#ltc");
+      const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } =
+        svg.createMotionPath("#ctr");
       const tl = createTimeline({ defaults: { duration: 2000 } });
       tlRef.current = tl
 
-      // Animate input letters
-      input.forEach((letter, i) => {
-        const el = document.createElement("div");
-        el.textContent = letter;
-        el.className = `letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
-          text-2xl font-extrabold text-cyan-300 
-          bg-gradient-to-br from-[#1e1e2f] via-[#111827] to-[#000] 
-          rounded-xl backdrop-blur-lg border border-cyan-400/50
-          shadow-[0_0_25px_rgba(0,255,255,0.8)] 
-          animate-pulse-glow neon-particle`;
+      // ✅ We know input & output are always 2D arrays
+      input.forEach((row, rowIndex) => {
+        row.forEach((letter, colIndex) => {
+          // 🔹 Create input letter box
+          const el = document.createElement("div");
+          el.textContent = letter;
+          el.className = `
+            letter-box opacity-0 absolute min-w-16 min-h-16 p-5 flex justify-center items-center
+            text-2xl font-extrabold text-cyan-300 
+            bg-gradient-to-br from-[#1e1e2f] via-[#111827] to-[#000] 
+            rounded-xl backdrop-blur-lg border border-cyan-400/50
+            shadow-[0_0_25px_rgba(0,255,255,0.8)] 
+            animate-pulse-glow neon-particle
+          `;
 
-        root.current.prepend(el);
+          root.current.prepend(el);
 
-        tl.add(
-          el,
-          {
-            keyframes: {
-              "10%": { opacity: 1 },
+          tl.add(
+            el,
+            {
+              keyframes: { "10%": { opacity: 1 } },
+              translateX: ltcX,
+              translateY: ltcY,
+              rotate: ltcRotate,
+              opacity: 1,
+              loop: false,
+              onComplete: () => el.remove(),
             },
-            translateX: ltcX,
-            translateY: ltcY,
-            rotate: ltcRotate,
-            opacity: 1,
-            loop: false,
-            onComplete: () => el.remove(),
-          },
-          "+=200"
-        );
+            "+=200"
+          );
 
-        // Animate grouped output letters for each input letter
-        output[i].forEach((elm, j) => {
+          // 🔹 Create corresponding output letter box
+          const outVal = output[rowIndex][colIndex]; // ✅ Correct mapping
           const outEl = document.createElement("div");
-          outEl.textContent = elm;
-          outEl.className = `absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
+          outEl.textContent = outVal;
+          outEl.className = `
+            absolute opacity-0 p-5 left-160 top-42 min-w-16 min-h-16 z-40 flex justify-center items-center
             text-xl font-extrabold text-pink-400 
             bg-gradient-to-br from-[#0f0f1f] via-[#1a1a2e] to-[#000] 
             rounded-xl backdrop-blur-lg border border-pink-400/50
             shadow-[0_0_25px_rgba(255,0,255,0.8)] 
-            animate-pulse-glow neon-particle`;
+            animate-pulse-glow neon-particle
+          `;
 
           root.current.appendChild(outEl);
 
           tl.add(
             outEl,
             {
-              keyframes: {
-                "10%": { opacity: 1 },
-              },
+              keyframes: { "10%": { opacity: 1 } },
               translateX: ctrX,
               translateY: ctrY,
               rotate: ctrRotate,
@@ -74,16 +78,16 @@ export default function Flow({ input, convertor, output }) {
               onComplete: () => {
                 outEl.remove();
                 if (
-                  i === input.length - 1 &&
-                  j === output[i].length - 1 &&
+                  rowIndex === input.length - 1 &&
+                  colIndex === row.length - 1 &&
                   !hasCompleted.current
                 ) {
                   hasCompleted.current = true;
-                  onComplete(input, output);
+                  onComplete();
                 }
               },
             },
-            "-=1000"
+            "+=0"
           );
         });
       });
@@ -97,25 +101,20 @@ export default function Flow({ input, convertor, output }) {
   }, [input, onComplete, output]);
 
   useEffect(() => {
-    if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
-  }, [speed]);
-  useEffect(() => {
     if (tlRef) {
       animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
     }
   }, [animate])
 
+  useEffect(() => {
+    if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
+  }, [speed]);
+
   return (
     <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
-      {/* Motion Paths */}
+      {/* Mosides will show whitetion Paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
-        <path
-          id="ltc"
-          d="M 0 229 l 543 0"
-          fill="none"
-          stroke="none"
-          strokeWidth="2"
-        />
+        <path id="ltc" d="M 0 229 l 543 0" fill="none" stroke="none" />
       </svg>
 
       <svg
@@ -124,13 +123,7 @@ export default function Flow({ input, convertor, output }) {
         viewBox="0 0 800 600"
         className="absolute bottom-0"
       >
-        <path
-          id="ctr"
-          d="M 0 58 l 800 0"
-          fill="none"
-          stroke="none"
-          strokeWidth="2"
-        />
+        <path id="ctr" d="M 0 58 l 800 0" fill="none" stroke="none" />
       </svg>
 
       {/* Converter Box */}
@@ -139,11 +132,10 @@ export default function Flow({ input, convertor, output }) {
         rounded-xl shadow-[0_0_35px_rgba(0,255,255,0.9)]
         flex items-center justify-center text-cyan-300
         font-bold text-2xl border border-cyan-400/40 backdrop-blur-md
-        animate-holo-shimmer z-50"
+         z-50"
       >
         {convertor}
       </div>
-
     </div>
   );
 }

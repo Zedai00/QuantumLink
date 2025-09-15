@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import FlowImageResizer from "../Flows/FlowImageExtractor";
+import FlowImageResizer from "../Flows/FlowImage/FlowImageExtractor";
 import { Context } from "../Context/Context";
 
 export default function ImageResizerPixelExtractor() {
