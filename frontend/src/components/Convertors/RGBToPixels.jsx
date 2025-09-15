@@ -1,12 +1,12 @@
 import { useContext } from "react";
-import FlowRGBValues from "../Flows/FlowImage/FlowRGBValues";
+import FlowRGBToPixels from "../Flows/FlowImage/FlowRGBToPixels";
 import { Context } from "../Context/Context";
 
-export default function PixelsToRGB() {
+export default function RGBToPixels() {
   const { stage, stagesData, imgDim} = useContext(Context);
 
   return (
-    <FlowRGBValues
+    <FlowRGBToPixels
       input={stagesData[stage]?.input}
       convertor="Pixel To RGB"
       output={stagesData[stage]?.output}

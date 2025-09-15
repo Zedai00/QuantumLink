@@ -13,13 +13,14 @@ import BinaryToLetter from "./components/Convertors/BinaryToLetter";
 import ImageResizerPixelExtractor from "./components/Convertors/ImageResizerPixelExtractor";
 import LetterMerger from "./components/Convertors/LetterMerger";
 import RGBToBinary from "./components/Convertors/RGBToBinary";
+import RGBToPixels from "./components/Convertors/RGBToPixels";
 import QuantumCompletion from "./components/QuantumCompletion";
 import PixelsToImage from "./components/Convertors/ImageReconstructor";
-import BinaryToPixel from "./components/Convertors/BinaryToPixel";
+import BinaryToRGB from "./components/Convertors/BinaryToRGB";
 import AliceChat from "./components/Chats/AliceChat";
 import BobChat from "./components/Chats/BobChat";
 import Circuit from "./components/Convertors/Circuit";
-import PixelToRGB from "./components/Convertors/PixelToRGB";
+import PixelsToRGB from "./components/Convertors/PixelToRGB";
 
 export default function App() {
   const [stage, setStage] = useState(0);
@@ -50,16 +51,17 @@ export default function App() {
   const imageStages = [
     AliceChat,
     ImageResizerPixelExtractor,
-    PixelToRGB,
+    PixelsToRGB,
     RGBToBinary,
     RGBBinarySplitter,
-
     BinaryToGate,
-
     BlochPage,
     GateToBinary,
     BinaryMerger,
-    BinaryToPixel,
+    BinaryToRGB,
+
+    RGBToPixels,
+
     PixelsToImage,
     // ImagePreview,
     BobChat,
@@ -176,10 +178,9 @@ export default function App() {
 
         binary.push(rBin + gBin + bBin);
 
-
-
         // Split into 2-bit chunks
-        const pixelChunks = (rBin + gBin + bBin).slice(0,8).match(/.{1,2}/g) || [];
+        const pixelChunks =
+          (rBin + gBin + bBin).slice(0, 8).match(/.{1,2}/g) || [];
         for (let k = 0; k < pixelChunks.length; k += 4) {
           binarySplit.push(pixelChunks.slice(k, k + 4));
         }
@@ -192,19 +193,18 @@ export default function App() {
 
     // Reduced Values
     const rgbValues = rgbPixels
-      .slice(0, 20)
+      // .slice(0, 20)
       .map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`);
     const reducedImgBin = binary.slice(0, 20);
 
     const b8Bin = reducedImgBin.map((b) => b.slice(0, 8));
     const b8BinSplit = splitBinTo2(b8Bin);
 
-    console.log("Step1 Pixels:", pixelBinary);
-    console.log("Step2 Binary:", binary);
-    console.log("Step3 Split:", binarySplit);
-    console.log("Step4 RGB Output:", b8Bin);
-    console.log("Step4 RGB Output:", b8BinSplit);
-
+    // console.log("Step1 Pixels:", pixelBinary);
+    // console.log("Step2 Binary:", binary);
+    // console.log("Step3 Split:", binarySplit);
+    // console.log("Step4 RGB Output:", b8Bin);
+    // console.log("Step4 RGB Output:", b8BinSplit);
 
     // Convert binary/pixels to quantum gates
     const gates = binarySplit.map((row) =>
@@ -281,14 +281,15 @@ export default function App() {
         { stage: 2, input: rgbPixels, output: rgbValues }, // PixelToRGB
         { stage: 3, input: rgbValues, output: reducedImgBin }, // RGBToBinary
         { stage: 4, input: b8Bin, output: b8BinSplit }, // BinarySplitter
-
         { stage: 5, input: b8BinSplit, output: gates }, // BinaryToGate
         { stage: 6, input: gates.flat(), output: blochVisual }, // BlochPage
         { stage: 7, input: blochVisual, output: gatesBack }, // GateToBinary
+        { stage: 8, input: binary2D, output: mergedBinary }, // BinaryMerger
+        { stage: 9, input: reducedImgBin, output: rgbValues }, // BinaryToRGB
 
-        { stage: 8, input: gatesBack, output: binary2D }, // BinaryMerger
-        { stage: 9, input: binary2D, output: data }, // BinaryToPixel
-        { stage: 10, input: data, output: data }, // ImageReconstructor / BobChat
+        { stage: 10, input: rgbValues, output: rgbPixels }, // RGBToPixels
+
+        { stage: 11, input: data, output: data }, // ImageReconstructor / BobChat
       ];
     }
   };
