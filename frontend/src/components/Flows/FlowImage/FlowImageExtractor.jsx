@@ -17,7 +17,6 @@ export default function FlowImageExtractor({ input, output, width, height }) {
   const [layoutReady, setLayoutReady] = useState(false);
 
   const pixelColors = output.map(([r, g, b]) => `rgb(${r},${g},${b})`);
-  console.log("PixelColors length: ", pixelColors.length);
 
   const animateCount = Math.min(2000, pixelColors.length);
   const animatedPixelIndices = Array.from(

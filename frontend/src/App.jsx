@@ -15,7 +15,7 @@ import LetterMerger from "./components/Convertors/LetterMerger";
 import RGBToBinary from "./components/Convertors/RGBToBinary";
 import RGBToPixels from "./components/Convertors/RGBToPixels";
 import QuantumCompletion from "./components/QuantumCompletion";
-import PixelsToImage from "./components/Convertors/ImageReconstructor";
+import PixelsToImage from "./components/Convertors/PixelsToImage";
 import BinaryToRGB from "./components/Convertors/BinaryToRGB";
 import AliceChat from "./components/Chats/AliceChat";
 import BobChat from "./components/Chats/BobChat";
@@ -59,7 +59,6 @@ export default function App() {
     GateToBinary,
     BinaryMerger,
     BinaryToRGB,
-
     RGBToPixels,
 
     PixelsToImage,
@@ -255,7 +254,7 @@ export default function App() {
     );
     const mergedText = lettersBack.join("");
 
-    const { content: data } = inputMsg;
+    const { content: data, b64Img } = inputMsg;
 
     if (inputMsg.type === "text") {
       return [
@@ -286,10 +285,9 @@ export default function App() {
         { stage: 7, input: blochVisual, output: gatesBack }, // GateToBinary
         { stage: 8, input: binary2D, output: mergedBinary }, // BinaryMerger
         { stage: 9, input: reducedImgBin, output: rgbValues }, // BinaryToRGB
-
         { stage: 10, input: rgbValues, output: rgbPixels }, // RGBToPixels
 
-        { stage: 11, input: data, output: data }, // ImageReconstructor / BobChat
+        { stage: 11, input: rgbPixels, output: b64Img  }, // ImageReconstructor / BobChat
       ];
     }
   };

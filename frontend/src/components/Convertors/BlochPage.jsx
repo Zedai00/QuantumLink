@@ -12,8 +12,6 @@ export default function BlochPage() {
   const input = stagesData[stage].input
   const output = stagesData[stage].output
 
-      console.log("BlockVisual: ", output)
-
 
   const [selectedGate, setSelectedGate] = useState("RANDOM");
   const [gateKey, setGateKey] = useState(0);
