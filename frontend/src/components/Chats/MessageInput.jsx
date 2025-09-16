@@ -15,7 +15,8 @@ export default function MessageInput({ onSend }) {
   const handleSend = () => {
     if (message.type === "" || !message.content) return;
 
-    console.log("Sending:", message);
+    // console.log("Sending:", message);
+    
     onSend(message);
     setPreview(null);
     setMessage({ type: "", content: "", b64Img: "", sender: "", time: "" }); // reset after send
@@ -59,7 +60,7 @@ export default function MessageInput({ onSend }) {
         const pixels = imageData.data;
 
         // console.log("Optimized flat binary per pixel:", binarySplit);
-        console.log("Pixel or message.content: ", pixels);
+        // console.log("Pixel or message.content: ", pixels);
 
         setPreview(base64Image);
         setMessage({

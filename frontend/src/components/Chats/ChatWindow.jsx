@@ -4,8 +4,7 @@ import MessageInput from "./MessageInput";
 
 export default function ChatWindow({ startChat, onComplete, input, sender }) {
 
-  console.log("Input: ", input)
-  // ✅ Handle sending messages (text or image)
+  // Handle sending messages (text or image)
   const handleSendMessage = (message) => {
     if (message.type === "text" && !message.content.trim()) return;
 

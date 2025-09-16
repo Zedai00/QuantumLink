@@ -2,9 +2,6 @@ import { Check, CheckCheck } from "lucide-react";
 import DynamicAvatar from "./DynamicAvatar";
 
 export default function ChatMessage({ msg }) {
-  console.log("Img: ", msg.content)
-  console.log("Type: ", msg.type)
-  console.log("Image: ", msg.b64Img)
   const isMe = msg.sender === "Alice";
 
   return (

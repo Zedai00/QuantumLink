@@ -1,5 +1,11 @@
-
-import { useEffect, useRef, useState, useCallback, useContext, useMemo } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import { motion, useAnimation } from "framer-motion";
 import { Context } from "../../Context/Context";
 
@@ -9,6 +15,8 @@ export default function FlowRGBValues({ input, width, height }) {
   const rootRef = useRef(null);
   const gridRef = useRef(null);
   const converterRef = useRef(null);
+  const pixelCanvasRef = useRef(null);
+  const rgbCanvasRef = useRef(null);
 
   const [layoutReady, setLayoutReady] = useState(false);
   const [positions, setPositions] = useState([]);
@@ -17,27 +25,27 @@ export default function FlowRGBValues({ input, width, height }) {
 
   const converterAnim = useAnimation();
 
-  // Pixel cap
-  const MAX_PIXELS = 8000;
-  let pixelData = input;
-  if (input.length > MAX_PIXELS) {
-    const step = Math.ceil(input.length / MAX_PIXELS);
-    pixelData = input.filter((_, i) => i % step === 0);
+  // cap pixel count for performance
+  const MAX_PIXELS = 6000;
+  let pixelData = input || [];
+  if (pixelData.length > MAX_PIXELS) {
+    const step = Math.ceil(pixelData.length / MAX_PIXELS);
+    pixelData = pixelData.filter((_, i) => i % step === 0);
     console.warn(
       `⚠️ Input had ${input.length} pixels, downscaled to ${pixelData.length}.`
     );
   }
 
-   // Memoize pixelColors to avoid unnecessary recalcs
+  // Memoize pixelColors to avoid unnecessary recalcs
   const pixelColors = useMemo(
-    () => (pixelData ? pixelData.map(([r, g, b]) => `rgb(${r}, ${g}, ${b})`) : []),
+    () => pixelData.map(([r, g, b]) => `rgb(${r},${g},${b})`),
     [pixelData]
   );
 
   const gap = 1;
   const animateCount = pixelColors.length;
 
-  // Layout calculation
+  // layout calculation
   const computeLayout = useCallback(() => {
     const root = rootRef.current;
     const grid = gridRef.current;
@@ -57,35 +65,39 @@ export default function FlowRGBValues({ input, width, height }) {
     );
     const computedCell = Math.max(2, Math.floor(maxGridWidth / cols));
 
-    const initialPosition = [];
+    const layout = [];
+    const screenWidth = typeof window !== "undefined" ? window.innerWidth : 800;
+
     for (let i = 0; i < animateCount; i++) {
       const row = Math.floor(i / cols);
       const col = i % cols;
 
-      const startX =
-        gridRect.left - rootRect.left + col * (computedCell + gap);
-      const startY =
-        gridRect.top - rootRect.top + row * (computedCell + gap);
+      const startX = gridRect.left - rootRect.left + col * (computedCell + gap);
+      const startY = gridRect.top - rootRect.top + row * (computedCell + gap);
 
       const midX = convRect.left - rootRect.left + convRect.width / 2;
       const midY = convRect.top - rootRect.top + convRect.height / 2;
 
-      initialPosition.push({
+      const endX = screenWidth - 80;
+      const endY = midY + i * 6;
+
+      layout.push({
         start: { x: startX, y: startY },
         mid: { x: midX, y: midY },
+        end: { x: endX, y: endY },
         color: pixelColors[i],
         index: i,
       });
     }
 
-    setPositions(initialPosition);
+    setPositions(layout);
     setGridCols(cols);
     setCellSize(computedCell);
     setLayoutReady(true);
   }, [width, height, pixelColors, animateCount]);
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => computeLayout());
+    const id = requestAnimationFrame(computeLayout);
     window.addEventListener("resize", computeLayout);
     return () => {
       cancelAnimationFrame(id);
@@ -93,13 +105,13 @@ export default function FlowRGBValues({ input, width, height }) {
     };
   }, [computeLayout]);
 
-  // Glow + onComplete trigger
+  // animate converter glow + handle complete
   useEffect(() => {
     if (!layoutReady || positions.length === 0) return;
     let isMounted = true;
 
-    // Converter glow loop
-    positions.forEach((_, i) => {
+    // glowing effect loop
+    const glowLoop = positions.map((_, i) =>
       setTimeout(() => {
         if (!isMounted) return;
         converterAnim.start({
@@ -113,10 +125,10 @@ export default function FlowRGBValues({ input, width, height }) {
             backgroundColor: "#111827",
           });
         }, 300);
-      }, i * 500 + 200);
-    });
+      }, i * 500 + 200)
+    );
 
-    // Calculate when last RGB disappears
+    // compute when all done
     const lastDelay = (positions.length - 1) * 0.3;
     const rgbDuration = 1.5;
     const totalTime = lastDelay * 1000 + rgbDuration * 1000;
@@ -127,22 +139,96 @@ export default function FlowRGBValues({ input, width, height }) {
 
     return () => {
       isMounted = false;
+      glowLoop.forEach(clearTimeout);
       clearTimeout(timer);
     };
   }, [layoutReady, positions, converterAnim, onComplete]);
 
+  // pixel animation on canvas
+  useEffect(() => {
+    if (!layoutReady || !pixelCanvasRef.current) return;
+    const canvas = pixelCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const startTime = performance.now();
+    let rafId;
+
+    function draw(now) {
+      if (!canvas) return;
+      const elapsed = (now - startTime) / 1000;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      positions.forEach((p, i) => {
+        const delay =  i * 0.3;
+        const duration = 1.5;
+        const t = Math.min(1, Math.max(0, (elapsed - delay) / duration));
+
+        const x = p.start.x + (p.mid.x - p.start.x) * t;
+        const y = p.start.y + (p.mid.y - p.start.y) * t;
+
+        ctx.fillStyle = p.color;
+        ctx.fillRect(x, y, cellSize, cellSize);
+      });
+
+      rafId = requestAnimationFrame(draw);
+    }
+
+    rafId = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafId);
+  }, [layoutReady, positions, cellSize]);
+
+  // RGB label animation on canvas
+  useEffect(() => {
+    if (!layoutReady || !rgbCanvasRef.current) return;
+    const canvas = rgbCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.font = "14px monospace";
+    ctx.textBaseline = "top";
+    let rafId;
+    const startTime = performance.now();
+
+    function draw(now) {
+      if (!canvas) return;
+      const elapsed = (now - startTime) / 1000;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      positions.forEach((p, i) => {
+        const delay =  i * 1.5; 
+        const duration = 5;
+        const t = Math.min(1, Math.max(0, (elapsed - delay) / duration));
+
+        if (t > 0 && t <= 1) {
+          const x = p.mid.x + (p.end.x - p.mid.x) * t;
+          const y = p.mid.y + (p.end.y - p.mid.y) * t;
+
+          ctx.globalAlpha = Math.sin(Math.PI * t); // fade in/out
+          ctx.fillStyle = "white";
+          ctx.fillText(p.color, x + 20, y);
+
+          ctx.fillStyle = p.color;
+          ctx.fillRect(x, y, 10, 10);
+        }
+      });
+
+      ctx.globalAlpha = 1;
+      rafId = requestAnimationFrame(draw);
+    }
+
+    rafId = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafId);
+  }, [layoutReady, positions]);
+
   if (!pixelColors.length) {
     return <div className="text-white">⚠️ No pixels to render</div>;
   }
-
-  const screenWidth = typeof window !== "undefined" ? window.innerWidth : 800;
 
   return (
     <div
       ref={rootRef}
       className="relative w-full h-screen bg-[#030313] text-white overflow-hidden"
     >
-      {/* Pixel grid */}
+      {/* Pixel grid placeholder */}
       <div
         ref={gridRef}
         className="absolute left-10 top-1/2 -translate-y-1/2"
@@ -151,22 +237,8 @@ export default function FlowRGBValues({ input, width, height }) {
           height: `${
             Math.ceil(pixelColors.length / gridCols) * (cellSize + gap)
           }px`,
-          display: "grid",
-          gridTemplateColumns: `repeat(${gridCols}, ${cellSize}px)`,
-          gap: gap,
         }}
-      >
-        {positions.map((_, i) => (
-          <div
-            key={`grid-${i}`}
-            style={{
-              width: cellSize,
-              height: cellSize,
-              backgroundColor: "transparent",
-            }}
-          />
-        ))}
-      </div>
+      />
 
       {/* Converter */}
       <motion.div
@@ -178,58 +250,21 @@ export default function FlowRGBValues({ input, width, height }) {
         Pixel → RGB
       </motion.div>
 
-      {/* Flying pixels */}
-      {layoutReady &&
-        positions.map((p, i) => (
-          <motion.div
-            key={`fly-${i}`}
-            className="absolute"
-            style={{
-              backgroundColor: p.color,
-              width: cellSize,
-              height: cellSize,
-            }}
-            initial={{ x: p.start.x, y: p.start.y, opacity: 1 }}
-            animate={{ x: [p.start.x, p.mid.x], y: [p.start.y, p.mid.y] }}
-            transition={{
-              delay: i * 0.3,
-              duration: 1.5,
-              ease: "easeInOut", 
-            }}
-          />
-        ))}
+      {/* Flying pixels canvas */}
+      <canvas
+        ref={pixelCanvasRef}
+        className="absolute left-0 top-0 w-full h-full pointer-events-none"
+        width={typeof window !== "undefined" ? window.innerWidth : 800}
+        height={typeof window !== "undefined" ? window.innerHeight : 600}
+      />
 
-      {/* RGB values */}
-      {layoutReady &&
-        positions.map((p, i) => (
-          <motion.div
-            key={`rgb-${i}`}
-            className="absolute flex items-center gap-1 text-xs"
-            initial={{ x: p.mid.x, y: p.mid.y, opacity: 0, scale: 0.9 }}
-            animate={{
-              x: screenWidth - 80,
-              y: p.mid.y + i * 6,
-              opacity: [0, 1, 1, 0],
-              scale: [0.9, 1.05, 1],
-            }}
-            transition={{
-              delay: i * 0.8 + 1.5,
-              duration: 5,
-              ease: "easeInOut",
-            }}
-          >
-            <div
-              className="w-3 h-3 rounded-sm border border-gray-600"
-              style={{ backgroundColor: p.color }}
-            />
-            <span
-              className="font-bold text-lg whitespace-nowrap"
-
-            >
-              {p.color}
-            </span>
-          </motion.div>
-        ))}
+      {/* RGB labels canvas */}
+      <canvas
+        ref={rgbCanvasRef}
+        className="absolute font-bold left-0 top-0 w-full h-full pointer-events-none"
+        width={typeof window !== "undefined" ? window.innerWidth : 800}
+        height={typeof window !== "undefined" ? window.innerHeight : 600}
+      />
     </div>
   );
 }
