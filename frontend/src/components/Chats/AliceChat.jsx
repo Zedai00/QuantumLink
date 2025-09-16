@@ -15,7 +15,7 @@ export default function Chat() {
         <ChatWindow
           startChat={stage === 0 ? true : false}
           input={stagesData[stage] ? stagesData[stage].input : ""}
-          sender={stagesData[stage] ? stagesData[stage].sender : "Alice"}
+          sender={stagesData[stage] ? stagesData[stage].input.sender : "Alice"}
           onComplete={onChatComplete}
           onImageComplete={onImageComplete}
         />

@@ -8,6 +8,8 @@ export default function MessageInput({ onSend }) {
     type: "",
     content: "",
     b64Img: "",
+    sender: "",
+    time: "",
   });
 
   const handleSend = () => {
@@ -16,7 +18,7 @@ export default function MessageInput({ onSend }) {
     console.log("Sending:", message);
     onSend(message);
     setPreview(null);
-    setMessage({ type: "", content: "", b64Img: "" }); // reset after send
+    setMessage({ type: "", content: "", b64Img: "", sender: "", time: "" }); // reset after send
   };
 
   // Open file picker

@@ -16,7 +16,7 @@ export default function Chat() {
         <SideBar className=" h-full overflow-x-hidden" startChat={false} />
         <ChatWindow
           startChat={false}
-          input={input}
+          input={stagesData[stage] ? stagesData[stage].input : ""}
           onComplete={onComplete}
           onImageComplete={onImageComplete}
         />

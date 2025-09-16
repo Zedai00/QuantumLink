@@ -57,9 +57,10 @@ export default function ChatWindow({ startChat, onComplete, input, sender }) {
           >
             <ChatMessage
               msg={{
-                sender: sender || "Alice",
+                sender: input.sender || "Alice",
                 type: input.type || "text",
-                content: input.b64Img || String(input), // fallback if input was string
+                content: input.content || String(input), // fallback if input was string
+                b64Img: input.b64Img,
                 time:
                   input.time ||
                   new Date().toLocaleTimeString([], {

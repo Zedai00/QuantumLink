@@ -60,9 +60,7 @@ export default function App() {
     BinaryMerger,
     BinaryToRGB,
     RGBToPixels,
-
     PixelsToImage,
-    // ImagePreview,
     BobChat,
   ];
 
@@ -286,8 +284,8 @@ export default function App() {
         { stage: 8, input: binary2D, output: mergedBinary }, // BinaryMerger
         { stage: 9, input: reducedImgBin, output: rgbValues }, // BinaryToRGB
         { stage: 10, input: rgbValues, output: rgbPixels }, // RGBToPixels
-
-        { stage: 11, input: rgbPixels, output: b64Img  }, // ImageReconstructor / BobChat
+        { stage: 11, input: rgbPixels, output: b64Img  }, // PixelsToImage
+        {stage: 12, input: inputMsg, output: inputMsg}// BobChat
       ];
     }
   };
