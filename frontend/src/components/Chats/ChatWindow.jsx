@@ -2,32 +2,34 @@ import ChatMessage from "./ChatMessage";
 import DynamicAvatar from "./DynamicAvatar";
 import MessageInput from "./MessageInput";
 
-export default function ChatWindow({ startChat, onComplete, input, onImageComplete }) {
-  // Function to send a new message
+export default function ChatWindow({
+  startChat,
+  onComplete,
+  input,
+}) {
+  // Handle sending messages (text or image)
+  const handleSendMessage = (message) => {
+    if (message.type === "text" && !message.content.trim()) return;
 
-  const handleSendMessage = (text) => {
-    if (!text.trim()) return; // Prevent empty messages
-    onComplete(text);
+    onComplete({
+      sender: startChat ? "Alice" : "Bob",
+      ...message,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    });
   };
 
   if (!startChat) {
-    onComplete("")
-  }
-
-  const handleImageSend = (file) => {
-    onImageComplete(file)
+    onComplete("");
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#030313] border border-cyan-400/30  shadow-[0_0_30px_rgba(0,255,255,0.2)] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[#030313] border border-cyan-400/30 shadow-[0_0_30px_rgba(0,255,255,0.2)] overflow-hidden">
       {/* Chat Header */}
       <div className="h-14 flex items-center px-5 border-b border-cyan-400/40 bg-gradient-to-r from-[#0f0f1f] via-[#1a1f3c] to-[#0f0f1f] shadow-[0_0_20px_rgba(0,255,255,0.4)]">
         <span className="font-semibold flex gap-3 text-lg text-cyan-300 items-center">
-          {/* <img */}
-          {/*   src={startChat ? "/Bob-pp.jpg" : "/Alice-pp.jpg"} */}
-          {/*   alt="profile" */}
-          {/*   className="w-8 h-8 rounded-full border border-cyan-300 shadow-[0_0_10px_rgba(0,255,255,0.6)]" */}
-          {/* /> */}
           <DynamicAvatar name={startChat ? "Bob" : "Alice"} />
           {startChat ? "Bob" : "Alice"}
         </span>
@@ -36,32 +38,37 @@ export default function ChatWindow({ startChat, onComplete, input, onImageComple
       {/* Chat Messages Container */}
       <div className="flex-1 p-5 space-y-4 overflow-y-auto bg-gradient-to-b from-[#050517] to-[#09091f]">
         {/* Default Bob Message */}
-        <div className={`flex justify-start ${startChat ? "" : "justify-self-end"}`}>
+        <div className={startChat ? "flex justify-start" : "flex justify-end"}>
           <ChatMessage
             msg={{
               sender: "Bob",
-              text: "Hey!",
+              type: "text",
+              content: "Hey!",
               time: new Date().toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
-              img: "/Bob-pp.jpg",
             }}
           />
         </div>
 
-        {/* Alice's Reply */}
+        {/* Alice or Bob’s Reply */}
         {input && (
-          <div className={`flex justify-end ${startChat ? "" : "justify-self-start"}`}>
+          <div
+            className={`flex ${startChat ? "justify-end" : "justify-start"}`}
+          >
             <ChatMessage
               msg={{
-                sender: "Alice",
-                text: input,
-                time: new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-                img: "/Alice-pp.jpg",
+                sender: input.sender || "Alice",
+                type: input.type || "text",
+                content: input.content || String(input), // fallback if plain string
+                b64Img: input.b64Img,
+                time:
+                  input.time ||
+                  new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
               }}
             />
           </div>
@@ -70,9 +77,8 @@ export default function ChatWindow({ startChat, onComplete, input, onImageComple
 
       {/* Message Input */}
       <div className="border-t border-cyan-400/30 bg-[#0f0f1f] shadow-[0_-2px_15px_rgba(0,255,255,0.1)]">
-        <MessageInput onSend={handleSendMessage} onImage={handleImageSend} />
+        <MessageInput onSend={handleSendMessage} />
       </div>
     </div>
   );
 }
-

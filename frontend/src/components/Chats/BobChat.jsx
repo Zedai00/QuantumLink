@@ -5,7 +5,7 @@ import SideBar from "./SideBar";
 import { Context } from "../Context/Context";
 
 export default function Chat() {
-  const { onComplete, stagesData, stage, onImageComplete } = useContext(Context);
+  const { onComplete, stagesData, stage} = useContext(Context);
 
   const input = stagesData[stage] ? stagesData[stage].input : [...stagesData[stage - 1].output];
 
@@ -16,9 +16,8 @@ export default function Chat() {
         <SideBar className=" h-full overflow-x-hidden" startChat={false} />
         <ChatWindow
           startChat={false}
-          input={input}
+          input={stagesData[stage] ? stagesData[stage].input : ""}
           onComplete={onComplete}
-          onImageComplete={onImageComplete}
         />
       </div>
     </div>

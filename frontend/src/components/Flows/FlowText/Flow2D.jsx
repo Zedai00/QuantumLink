@@ -1,29 +1,42 @@
 import { createScope, createTimeline, svg, utils } from "animejs";
 import { useContext, useEffect, useRef } from "react";
-import { Context } from "../Context/Context";
+import { Context } from "../../Context/Context";
 
 export default function Flow({ input, convertor, output }) {
+
   const root = useRef(null);
   const scope = useRef(null);
   const hasCompleted = useRef(false);
-  const tlRef = useRef(null)
+  const tlRef = useRef(null);
   const { onComplete, speed, animate } = useContext(Context);
+
+  //  normalize to always be 2D
+  const normalizedInput = Array.isArray(input?.[0]) ? input : [input];
+  const normalizedOutput = Array.isArray(output?.[0]) ? output : [output];
+
 
   useEffect(() => {
     hasCompleted.current = false;
 
     scope.current = createScope({ root }).add(() => {
-      const { translateX: ltcX, translateY: ltcY, rotate: ltcRotate } =
-        svg.createMotionPath("#ltc");
-      const { translateX: ctrX, translateY: ctrY, rotate: ctrRotate } =
-        svg.createMotionPath("#ctr");
-      const tl = createTimeline({ defaults: { duration: 2000 } });
-      tlRef.current = tl
+      const {
+        translateX: ltcX,
+        translateY: ltcY,
+        rotate: ltcRotate,
+      } = svg.createMotionPath("#ltc");
+      const {
+        translateX: ctrX,
+        translateY: ctrY,
+        rotate: ctrRotate,
+      } = svg.createMotionPath("#ctr");
 
-      // ✅ We know input & output are always 2D arrays
-      input.forEach((row, rowIndex) => {
+      const tl = createTimeline({ defaults: { duration: 2000 } });
+      tlRef.current = tl;
+
+      // ✅ Always safe iteration
+      normalizedInput.forEach((row, rowIndex) => {
         row.forEach((letter, colIndex) => {
-          // 🔹 Create input letter box
+          // 🔹 Input element
           const el = document.createElement("div");
           el.textContent = letter;
           el.className = `
@@ -34,7 +47,6 @@ export default function Flow({ input, convertor, output }) {
             shadow-[0_0_25px_rgba(0,255,255,0.8)] 
             animate-pulse-glow neon-particle
           `;
-
           root.current.prepend(el);
 
           tl.add(
@@ -51,8 +63,8 @@ export default function Flow({ input, convertor, output }) {
             "+=200"
           );
 
-          // 🔹 Create corresponding output letter box
-          const outVal = output[rowIndex][colIndex]; // ✅ Correct mapping
+          // 🔹 Output element (safe access with ?? "")
+          const outVal = normalizedOutput[rowIndex]?.[colIndex] ?? "";
           const outEl = document.createElement("div");
           outEl.textContent = outVal;
           outEl.className = `
@@ -63,7 +75,6 @@ export default function Flow({ input, convertor, output }) {
             shadow-[0_0_25px_rgba(255,0,255,0.8)] 
             animate-pulse-glow neon-particle
           `;
-
           root.current.appendChild(outEl);
 
           tl.add(
@@ -77,8 +88,9 @@ export default function Flow({ input, convertor, output }) {
               loop: false,
               onComplete: () => {
                 outEl.remove();
+                // ✅ Only call onComplete after last element disappears
                 if (
-                  rowIndex === input.length - 1 &&
+                  rowIndex === normalizedInput.length - 1 &&
                   colIndex === row.length - 1 &&
                   !hasCompleted.current
                 ) {
@@ -98,25 +110,29 @@ export default function Flow({ input, convertor, output }) {
       const lc = document.querySelectorAll(".letter-container");
       lc.forEach((l) => l.remove());
     };
-  }, [input, onComplete, output]);
+  }, [input, output, onComplete]);
 
   useEffect(() => {
-    if (tlRef) {
-      animate ? utils.sync(() => tlRef.current.play()) : utils.sync(() => tlRef.current.pause())
+    if (tlRef.current) {
+      animate
+        ? utils.sync(() => tlRef.current.play())
+        : utils.sync(() => tlRef.current.pause());
     }
-  }, [animate])
+  }, [animate]);
 
   useEffect(() => {
     if (tlRef.current) utils.sync(() => (tlRef.current.speed = speed));
   }, [speed]);
 
   return (
-    <div ref={root} className="relative bg-[#030313] w-full h-full overflow-hidden">
-      {/* Mosides will show whitetion Paths */}
+    <div
+      ref={root}
+      className="relative bg-[#030313] w-full h-full overflow-hidden"
+    >
+      {/* Motion Paths */}
       <svg width="500" height="600" viewBox="0 0 500 600">
         <path id="ltc" d="M 0 229 l 543 0" fill="none" stroke="none" />
       </svg>
-
       <svg
         width="800"
         height="600"
@@ -139,4 +155,3 @@ export default function Flow({ input, convertor, output }) {
     </div>
   );
 }
-

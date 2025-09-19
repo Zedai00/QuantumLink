@@ -1,14 +1,14 @@
 import { useContext } from "react";
-import Flow from "../Flows/FlowText/FlowArray";
+import FlowRGBBinarySplitter from "../Flows/FlowImage/FlowRGBBinarySplitter";
 import { Context } from "../Context/Context";
 
-export default function BinaryToLetter() {
+export default function RGBBinarySplitter() {
   const { stage, stagesData } = useContext(Context);
 
   return (
-    <Flow
+    <FlowRGBBinarySplitter
       input={stagesData[stage].input}
-      convertor="BinaryToLetter"
+      convertor="BinarySplitter"
       output={stagesData[stage].output}
     />
   );

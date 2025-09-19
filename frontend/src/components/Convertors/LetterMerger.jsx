@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Flow from "../Flows/FlowArrayToSingle";
+import Flow from "../Flows/FlowText/FlowArrayToSingle";
 import { Context } from "../Context/Context";
 
 export default function LetterMerger() {

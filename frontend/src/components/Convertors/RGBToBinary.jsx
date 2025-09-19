@@ -2,13 +2,13 @@ import { useContext } from "react";
 import Flow from "../Flows/FlowText/FlowArray";
 import { Context } from "../Context/Context";
 
-export default function BinaryToLetter() {
+export default function RGBToBinary() {
   const { stage, stagesData } = useContext(Context);
 
   return (
     <Flow
-      input={stagesData[stage].input}
-      convertor="BinaryToLetter"
+      input={stagesData[stage].input.slice(0, 30)}
+      convertor="RGB To Binary"
       output={stagesData[stage].output}
     />
   );
