@@ -22,6 +22,8 @@ import BobChat from "./components/Chats/BobChat";
 import Circuit from "./components/Convertors/Circuit";
 import PixelsToRGB from "./components/Convertors/PixelToRGB";
 
+import "./App.css"
+
 export default function App() {
   const [stage, setStage] = useState(0);
   const [stages, setStages] = useState([AliceChat]);
@@ -69,27 +71,17 @@ export default function App() {
     BobChat,
   ];
 
+  const [hidden, setHidden] = useState(false);
+
   const transitionStage = (nextStage) => {
-    if (!containerRef.current) return;
-
-    animate(containerRef.current, {
-      opacity: [1, 0],
-      scale: [1, 0.96],
-      filter: ["blur(0px)", "blur(10px)"],
-      duration: 350,
-      ease: "inOutSine",
-    }).then(() => {
-      setStage(nextStage);
-
-      animate(containerRef.current, {
-        opacity: [0, 1],
-        scale: [0.96, 1],
-        filter: ["blur(10px)", "blur(0px)"],
-        duration: 400,
-        ease: "outExpo",
-      });
-    });
+    setHidden(true); // fade out
+    setTimeout(() => {
+      setStage(nextStage); // swap after fade
+      setHidden(false); // fade in
+    }, 400); // match transition duration
   };
+
+
 
   const handleLastStage = () => {
     setTimeout(() => {
@@ -317,7 +309,7 @@ export default function App() {
   return (
     <div
       ref={containerRef}
-      className="h-screen w-screen flex flex-col justify-center items-center"
+      className={`fade ${hidden ? "fade-hidden" : ""} h-screen w-screen flex flex-col justify-center items-center`}
     >
       {isBlochPage && (
         <button
@@ -432,7 +424,8 @@ export default function App() {
             onChatComplete: handleChatComplete,
             onSettingsChange: handleSettingsChange,
           }}
-        >
+          >
+            
           <StageToRender />
         </Context.Provider>
       )}
