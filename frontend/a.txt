@@ -1,0 +1,21 @@
+Challenges Faced
+
+Abstract to Visual Translation – Making entanglement and qubit transformations understandable for non-experts.
+
+Solution: Introduced dual visualization modes (Bloch spheres + circuit diagrams).
+
+Performance Optimization – Rendering 3D Bloch spheres smoothly without lag.
+
+Solution: Optimized with Three.js + Anime.js for lightweight animations.
+
+Educational Balance – Keeping the simulator simple for beginners yet detailed for advanced learners.
+
+Solution: Added step-by-step animations and math overlays (KaTeX).
+
+User Interaction Design – Mapping text → binary → gates → visuals seamlessly.
+
+Solution: Built a chat-based UI with modular React components.
+
+Time & Resource Constraints – Building within hackathon limits without specialized hardware.
+
+Solution: Focused on browser-based simulation running on standard systems.

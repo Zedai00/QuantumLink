@@ -22,7 +22,7 @@ import BobChat from "./components/Chats/BobChat";
 import Circuit from "./components/Convertors/Circuit";
 import PixelsToRGB from "./components/Convertors/PixelToRGB";
 
-import "./App.css"
+import "./App.css";
 
 export default function App() {
   const [stage, setStage] = useState(0);
@@ -37,7 +37,7 @@ export default function App() {
 
   const [settings, setSettings] = useState({
     errorRate: 0,
-    noiseMode: "depolarizing"
+    noiseMode: "depolarizing",
   });
   const containerRef = useRef(null);
 
@@ -81,8 +81,6 @@ export default function App() {
     }, 400); // match transition duration
   };
 
-
-
   const handleLastStage = () => {
     setTimeout(() => {
       setComplete(true);
@@ -95,7 +93,7 @@ export default function App() {
         if (index % 2 === 0) acc.push("");
         acc[acc.length - 1] += char;
         return acc;
-      }, [])
+      }, []),
     );
   };
 
@@ -109,7 +107,7 @@ export default function App() {
       case "bit-flip":
         return base * (0.88 + Math.random() * 0.04);
       case "phase-flip":
-        return base * (0.90 + Math.random() * 0.03);
+        return base * (0.9 + Math.random() * 0.03);
       case "combined":
         return base * (0.85 + Math.random() * 0.03);
       default:
@@ -117,7 +115,11 @@ export default function App() {
     }
   };
 
-  const generateStagesData = (inputMsg, errorRate = 0, noiseMode = "depolarizing") => {
+  const generateStagesData = (
+    inputMsg,
+    errorRate = 0,
+    noiseMode = "depolarizing",
+  ) => {
     let binarySplit = [];
     let letters = [];
     let binary = [];
@@ -146,7 +148,8 @@ export default function App() {
         const bBin = b.toString(2).padStart(8, "0");
         binary.push(rBin + gBin + bBin);
 
-        const pixelChunks = (rBin + gBin + bBin).slice(0, 8).match(/.{1,2}/g) || [];
+        const pixelChunks =
+          (rBin + gBin + bBin).slice(0, 8).match(/.{1,2}/g) || [];
         for (let k = 0; k < pixelChunks.length; k += 4) {
           binarySplit.push(pixelChunks.slice(k, k + 4));
         }
@@ -164,13 +167,18 @@ export default function App() {
     const gates = binarySplit.map((row) =>
       row.map((b) => {
         switch (b) {
-          case "00": return "I";
-          case "01": return "X";
-          case "10": return "Z";
-          case "11": return "XZ";
-          default: return "I";
+          case "00":
+            return "I";
+          case "01":
+            return "X";
+          case "10":
+            return "Z";
+          case "11":
+            return "XZ";
+          default:
+            return "I";
         }
-      })
+      }),
     );
 
     const allGates = ["I", "X", "Z", "XZ"];
@@ -204,11 +212,16 @@ export default function App() {
 
     const gatesBack = blochVisual.map((g) => {
       switch (g) {
-        case "I": return "00";
-        case "X": return "01";
-        case "Z": return "10";
-        case "XZ": return "11";
-        default: return "00";
+        case "I":
+          return "00";
+        case "X":
+          return "01";
+        case "Z":
+          return "10";
+        case "XZ":
+          return "11";
+        default:
+          return "00";
       }
     });
 
@@ -219,7 +232,7 @@ export default function App() {
     }
     const mergedBinary = binary2D.map((group) => group.join(""));
     const lettersBack = mergedBinary.map((bStr) =>
-      String.fromCharCode(parseInt(bStr, 2))
+      String.fromCharCode(parseInt(bStr, 2)),
     );
     const mergedText = lettersBack.join("");
 
@@ -232,7 +245,14 @@ export default function App() {
         { stage: 2, input: letters, output: binary },
         { stage: 3, input: binary, output: binarySplit },
         { stage: 4, input: binarySplit, output: gates },
-        { stage: 5, input: [...gates.flat()], output: blochVisual, fidelity: fidelityValue, errorRate, noiseMode },
+        {
+          stage: 5,
+          input: [...gates.flat()],
+          output: blochVisual,
+          fidelity: fidelityValue,
+          errorRate,
+          noiseMode,
+        },
         { stage: 6, input: blochVisual, output: gatesBack },
         { stage: 7, input: binary2D, output: mergedBinary },
         { stage: 8, input: mergedBinary, output: lettersBack },
@@ -249,13 +269,20 @@ export default function App() {
         { stage: 3, input: rgbValues, output: reducedImgBin },
         { stage: 4, input: b8Bin, output: b8BinSplit },
         { stage: 5, input: b8BinSplit, output: gates },
-        { stage: 6, input: gates.flat(), output: blochVisual, fidelity: fidelityValue, errorRate, noiseMode },
+        {
+          stage: 6,
+          input: gates.flat(),
+          output: blochVisual,
+          fidelity: fidelityValue,
+          errorRate,
+          noiseMode,
+        },
         { stage: 7, input: blochVisual, output: gatesBack },
         { stage: 8, input: binary2D, output: mergedBinary },
         { stage: 9, input: reducedImgBin, output: rgbValues },
         { stage: 10, input: rgbValues, output: rgbPixels },
         { stage: 11, input: rgbPixels, output: inputMsg.b64Img },
-        { stage: 12, input: inputMsg, output: inputMsg }
+        { stage: 12, input: inputMsg, output: inputMsg },
       ];
     }
   };
@@ -404,8 +431,20 @@ export default function App() {
 
       {complete ? (
         <SuperdenseCompletion
-          encodedMessage={!imgData ? (stagesData[0].input) : (<img src={stagesData[0].input.b64Img} width={100} height={100} />)}
-          decodedMessage={!imgData ? (stagesData[0].input) : (<img src={stagesData[0].input.b64Img} width={100} height={100} />)}
+          encodedMessage={
+            !imgData ? (
+              stagesData[0].input
+            ) : (
+              <img src={stagesData[0].input.b64Img} width={100} height={100} />
+            )
+          }
+          decodedMessage={
+            !imgData ? (
+              stagesData[10].input
+            ) : (
+              <img src={stagesData[0].input.b64Img} width={100} height={100} />
+            )
+          }
           onRestart={handleRestart}
           stagesData={stagesData}
         />
@@ -424,8 +463,7 @@ export default function App() {
             onChatComplete: handleChatComplete,
             onSettingsChange: handleSettingsChange,
           }}
-          >
-            
+        >
           <StageToRender />
         </Context.Provider>
       )}
